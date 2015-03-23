@@ -1,0 +1,37 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.photonandroidclient.MainActivity"
+    tools:ignore="MergeRootFrame" >
+
+<TextView 
+    android:id="@+id/HintView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="0dp"
+    android:textSize="36dp"
+   
+    android:enabled="false"
+    />
+<Button 
+    android:id="@+id/SendButton"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="150dp"
+    android:text="SEND"
+    />
+
+<EditText
+    android:id="@+id/NameText"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+     android:layout_marginTop="100dp"
+      android:hint="Enter Name"
+     android:ems="10" >
+
+    <requestFocus />
+</EditText>
+    
+</FrameLayout>
