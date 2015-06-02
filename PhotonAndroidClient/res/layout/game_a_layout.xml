@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    
+
+
+<EditText
+   android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+     android:layout_marginTop="100dp"
+      android:hint="Enter Name"
+     android:ems="10" >
+     </EditText>
+<Button 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="150dp"
+    android:text="SEND"
+    />
+   
+<Button 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="200dp"
+    android:text="LEFT"
+    />
+   <Button 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="250dp"
+    android:text="RIGHT"
+    />
+   
+<ImageView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/game_over"
+    />
+
+
+</merge>
