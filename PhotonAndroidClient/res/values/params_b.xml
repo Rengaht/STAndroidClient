@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="wheel_cx">56.25px</dimen>
+    <dimen name="wheel_cy">50px</dimen>
+    <dimen name="wheel_width">48.85px</dimen>
+    <dimen name="wheel_height">81.94px</dimen>
+    
+    <dimen name="left_wheel_cx">33.51px</dimen>
+    <dimen name="left_wheel_cy">47.73px</dimen>
+    <dimen name="left_wheel_width">42.03px</dimen>
+    <dimen name="left_wheel_height">60.83px</dimen>
+    
+    <dimen name="left_point_cx">25.60px</dimen>
+    <dimen name="left_point_cy">47.5px</dimen>
+    <dimen name="left_point_width">21.51px</dimen>
+    <dimen name="left_point_height">22.04px</dimen>
+    
+    <dimen name="right_wheel_cx">80.68px</dimen>
+    <dimen name="right_wheel_cy">52.5px</dimen>
+    <dimen name="right_wheel_width">17.5px</dimen>
+    <dimen name="right_wheel_height">31.11px</dimen>
+    
+    <dimen name="right_point_cx">82.24px</dimen>
+    <dimen name="right_point_cy">51.02px</dimen>
+    <dimen name="right_point_width">5.73px</dimen>
+    <dimen name="right_point_height">6.67px</dimen>
+    
+    
+    <dimen name="win_cx">50px</dimen>
+    <dimen name="win_cy">50px</dimen>
+    <dimen name="win_width">44.06px</dimen>
+    <dimen name="win_height">35.65px</dimen>
+    
+    
+    <dimen name="wait_cx">50px</dimen>
+    <dimen name="wait_cy">50px</dimen>
+    <dimen name="wait_width">55.10px</dimen>
+    <dimen name="wait_height">32.5px</dimen>
+    
+</resources>

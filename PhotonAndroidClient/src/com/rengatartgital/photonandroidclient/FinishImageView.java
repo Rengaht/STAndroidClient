@@ -76,11 +76,16 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		
 		save_finish=false;
 		
+		cur_width=getWidth();
+		cur_height=getHeight();
+		
 		
 		
 		switch(igame){
 			case 0:
 			case 1:
+				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg);
+				break;
 			case 2:
 				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg);
 				break;
@@ -165,7 +170,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         
         
         saveImage();
-		
+		this.invalidate();
 	}
 	
 	@Override
@@ -176,6 +181,14 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	}
 	private void drawOnCanvas(Canvas canvas){
 		
+		
+		Log.i("STLog","Draw Finish View! "+cur_width+" x "+cur_height);
+		
+		if(back_bmp.getWidth()!=cur_width){
+			back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
+			notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
+		}
+		
 		if(back_bmp!=null) canvas.drawBitmap(back_bmp,0,0,mpaint);
 		if(front_bmp!=null && !front_bmp.isRecycled()){
 			canvas.save();
@@ -185,10 +198,10 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 			canvas.restore();
 		}
 		
-		
-		canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mstroke_paint);
-		canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mfill_paint);
-		
+		if(date_str!=null){
+			canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mstroke_paint);
+			canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mfill_paint);
+		}
 		if(save_finish)
 			canvas.drawBitmap(notice_bmp,0,(int)(cur_height*0.48), mnotice_paint);
 		

@@ -111,6 +111,9 @@ public class MainActivity extends Activity implements SensorEventListener{
     					addPicToGallery((String)msg.obj);
     					playSound(sound_id_finish);
     					return;
+    				case 102: // rotate for finish view
+    					setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    					return;
     			}
     			// go back to main view
     			if(icur_game>=0 && icur_game<3) arr_game_view[icur_game].End();

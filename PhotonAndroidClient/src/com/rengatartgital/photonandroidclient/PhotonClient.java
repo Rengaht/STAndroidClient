@@ -22,8 +22,9 @@ import de.exitgames.client.photon.enums.ConnectionProtocol;
 public class PhotonClient extends LoadBalancingClient implements Runnable{
 	
 	static final String LOG_TAG="STConnect";
-	//static final String SERVER_IP="54.250.171.10:5055";
-	static final String SERVER_IP="192.168.2.226:5055";
+	static final String SERVER_IP="kerkerker.artgital.com:5055";
+	//static final String SERVER_IP="192.168.2.226:5055";
+	static final String SERVER_APP="STPhotonServer";
 	
     Handler main_handler;
     boolean is_connected=true;
@@ -58,7 +59,7 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
 	}
 	public boolean connect(){
 		this.loadBalancingPeer=new LoadBalancingPeer(this,ConnectionProtocol.Udp);
-		if(this.loadBalancingPeer.connect(SERVER_IP, "STPhotonServer")){
+		if(this.loadBalancingPeer.connect(SERVER_IP, SERVER_APP)){
 			return true;
 		}
 		return false;

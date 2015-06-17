@@ -302,7 +302,7 @@ public class GameCView extends BaseGameView{
 		
 		Resources res=getResources();
 		
-		frame_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.frame_cx),res.getDimension(R.dimen.frame_cy),
+		frame_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.frame_cx),res.getDimension(R.dimen.frame_cy),
 				res.getDimension(R.dimen.frame_width),res.getDimension(R.dimen.frame_height));
 		camera_frame.layout(frame_rect.left,frame_rect.top,frame_rect.right,frame_rect.bottom);
 		
@@ -311,19 +311,19 @@ public class GameCView extends BaseGameView{
 		if(!changed) return;
 		
 		
-		Rect full_rect=this.getLayoutCoordinate(l,t,r,b);
+		Rect full_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b);
 		
 		img_back.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		
 		
 		//Log.i("STLayout","claim");
-		Rect claim_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.claim_cx),res.getDimension(R.dimen.claim_cy),
+		Rect claim_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.claim_cx),res.getDimension(R.dimen.claim_cy),
 				res.getDimension(R.dimen.claim_width),res.getDimension(R.dimen.claim_height));
 		img_page1.layout(claim_rect.left,claim_rect.top,claim_rect.right,claim_rect.bottom);
 		
 		img_photo.layout(frame_rect.left,frame_rect.top,frame_rect.right,frame_rect.bottom);
 		
-		Rect out_frame_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.out_frame_cx),res.getDimension(R.dimen.out_frame_cy),
+		Rect out_frame_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.out_frame_cx),res.getDimension(R.dimen.out_frame_cy),
 				res.getDimension(R.dimen.out_frame_width),res.getDimension(R.dimen.out_frame_height));
 		img_picture_frame.layout(out_frame_rect.left,out_frame_rect.top,out_frame_rect.right,out_frame_rect.bottom);
 		
@@ -338,54 +338,54 @@ public class GameCView extends BaseGameView{
 		
 		
 		//Log.i("STLayout","agree");
-		Rect agree_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.agree_cx),res.getDimension(R.dimen.agree_cy),
+		Rect agree_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.agree_cx),res.getDimension(R.dimen.agree_cy),
 				res.getDimension(R.dimen.agree_width),res.getDimension(R.dimen.agree_height));
 		button_agree.layout(agree_rect.left,agree_rect.top,agree_rect.right,agree_rect.bottom);
 		
 		//Log.i("STLayout","disagree");
-		Rect disagree_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.disagree_cx),res.getDimension(R.dimen.disagree_cy),
+		Rect disagree_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.disagree_cx),res.getDimension(R.dimen.disagree_cy),
 				res.getDimension(R.dimen.disagree_width),res.getDimension(R.dimen.disagree_height));
 		button_disagree.layout(disagree_rect.left,disagree_rect.top,disagree_rect.right,disagree_rect.bottom);
 		
 		
-		Rect grass_left_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.grasss_left_cx),res.getDimension(R.dimen.grasss_left_cy),
+		Rect grass_left_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.grasss_left_cx),res.getDimension(R.dimen.grasss_left_cy),
 				res.getDimension(R.dimen.grasss_width),res.getDimension(R.dimen.grasss_height));
 		img_grass_left.layout(0,grass_left_rect.top,grass_left_rect.width(),grass_left_rect.bottom);
 		
-		Rect grass_right_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.grasss_right_cx),res.getDimension(R.dimen.grasss_right_cy),
+		Rect grass_right_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.grasss_right_cx),res.getDimension(R.dimen.grasss_right_cy),
 				res.getDimension(R.dimen.grasss_width),res.getDimension(R.dimen.grasss_height));
 		img_grass_right.layout(r-grass_right_rect.width(),grass_right_rect.top,r,grass_right_rect.bottom);
 		
 		
-		Rect yes_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.yes_cx),res.getDimension(R.dimen.yes_cy),
+		Rect yes_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.yes_cx),res.getDimension(R.dimen.yes_cy),
 				res.getDimension(R.dimen.yes_width),res.getDimension(R.dimen.yes_height));
 		button_yes.layout(yes_rect.left,yes_rect.top,yes_rect.right,yes_rect.bottom);
 		
 		
-		Rect no_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.no_cx),res.getDimension(R.dimen.no_cy),
+		Rect no_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.no_cx),res.getDimension(R.dimen.no_cy),
 				res.getDimension(R.dimen.no_width),res.getDimension(R.dimen.no_height));
 		button_no.layout(no_rect.left,no_rect.top,no_rect.right,no_rect.bottom);
 		
-		Rect upload_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.upload_cx),res.getDimension(R.dimen.upload_cy),
+		Rect upload_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.upload_cx),res.getDimension(R.dimen.upload_cy),
 				res.getDimension(R.dimen.upload_width),res.getDimension(R.dimen.upload_height));
 		button_upload.layout(upload_rect.left,upload_rect.top,upload_rect.right,upload_rect.bottom);
 	
 		
-		Rect avatar_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.avatar_cx),res.getDimension(R.dimen.avatar_cy),
+		Rect avatar_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.avatar_cx),res.getDimension(R.dimen.avatar_cy),
 				res.getDimension(R.dimen.avatar_width),res.getDimension(R.dimen.avatar_height));
 		img_avatar.layout(avatar_rect.left,avatar_rect.top,avatar_rect.right,avatar_rect.bottom);
 		
 		//send_button=(Button)getChildAt(0);
 		//game_over_view=(ImageView)getChildAt(1);
 		
-		Rect bar_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.scalebar_cx),res.getDimension(R.dimen.scalebar_cy),
+		Rect bar_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.scalebar_cx),res.getDimension(R.dimen.scalebar_cy),
 				res.getDimension(R.dimen.scalebar_width),res.getDimension(R.dimen.scalebar_height));
 		seekbar_adjust.layout(bar_rect.left,bar_rect.top,bar_rect.right,bar_rect.bottom);
 		
 
 		img_finish.layout(full_rect.left, full_rect.top, full_rect.right, full_rect.bottom);
 		
-		Rect home_rect=this.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.home_cx),res.getDimension(R.dimen.home_cy),
+		Rect home_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.home_cx),res.getDimension(R.dimen.home_cy),
 				res.getDimension(R.dimen.home_width),res.getDimension(R.dimen.home_height));
 		button_home.layout(home_rect.left,home_rect.top,home_rect.right,home_rect.bottom);
 		
