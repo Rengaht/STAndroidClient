@@ -29,7 +29,7 @@ public class WheelView extends View{
 	float left_rotate_angle,right_rotate_angle;
 	
 	int wwid,whei;
-
+	
 	
 	public WheelView(Context context){
 		super(context);
@@ -45,7 +45,7 @@ public class WheelView extends View{
 	}
 	
 	void setupBitmap(){
-		center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_red);
+		center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
 		left_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_wheel);
 		left_point=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_point);
 		right_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_right_wheel);
@@ -54,7 +54,17 @@ public class WheelView extends View{
 		wait_paint=new Paint();
 		wait_paint.setARGB(120,0,0,0);
 	}
-	
+	void reset(){
+		center_rotate_angle=0;
+		dest_center_rotate_angle=0;
+		t_center_angle=0;
+		left_rotate_angle=0;
+		right_rotate_angle=-(float)Math.PI/2;
+		this.invalidate();
+	}
+	void start(){
+//		left_rotate_angle=.5f;
+	}
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 	   // Try for a width based on our minimum
@@ -109,20 +119,22 @@ public class WheelView extends View{
 				
 		Matrix matrix_left=new Matrix();
 		matrix_left.preTranslate(left_point_rect.left,left_point_rect.top);
-		matrix_left.preRotate((float)(60*Math.sin(left_rotate_angle)),(int)(left_point_rect.width()*0.857),(int)(left_point_rect.height()*0.77));
+		if(wait_mode) matrix_left.preRotate((float)(-68),(int)(left_point_rect.width()*0.857),(int)(left_point_rect.height()*0.75));
+		else matrix_left.preRotate((float)(40+80*(left_rotate_angle)),(int)(left_point_rect.width()*0.857),(int)(left_point_rect.height()*0.75));
 		
 		canvas.drawBitmap(left_point,matrix_left,null);
-		left_rotate_angle+=.1;
-		
+		left_rotate_angle+=.08*(Math.random()*2-1);
+		if(left_rotate_angle<-1) left_rotate_angle=-1;
+		else if(left_rotate_angle>1) left_rotate_angle=1;
 		
 		canvas.drawBitmap(right_wheel,right_wheel_rect.left,right_wheel_rect.top,null);
 		
 		Matrix matrix_right=new Matrix();
 		matrix_right.preTranslate(right_point_rect.left,right_point_rect.top);
-		matrix_right.preRotate((float) (40*Math.sin(right_rotate_angle)),(int)(right_point_rect.width()*0.2273),(int)(right_point_rect.height()*0.6667));
+		matrix_right.preRotate((float) (-60+40*(right_rotate_angle)),(int)(right_point_rect.width()*0.2273),(int)(right_point_rect.height()*0.6667));
 		
 		canvas.drawBitmap(right_point,matrix_right,null);
-		right_rotate_angle+=.05;
+		right_rotate_angle+=.01*(Math.random()*2);
 		
 		
 		
@@ -160,6 +172,17 @@ public class WheelView extends View{
 	private float getCurrentCenterAngle(){
 		
 		return dest_center_rotate_angle*(t_center_angle)+center_rotate_angle*(1-t_center_angle);
+	}
+	public void setColor(Integer icolor){
+		switch(icolor){
+			case 0:
+				center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
+				break;
+			case 1:
+				center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_red);
+				break;
+		}
+		postInvalidate();
 	}
 	 
 }

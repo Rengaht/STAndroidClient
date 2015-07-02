@@ -31,7 +31,9 @@ public enum GameEventCode{
 	Server_House_Success(162),
 	
 	
-	Server_GameB_Start(171),
+	Server_GameB_Ready(171),
+	Server_GameB_Start(172),
+	
 	Server_Face_Success(181),
 	
 	Server_Connected(191),
@@ -87,6 +89,8 @@ public enum GameEventCode{
 				return Server_House_Success;
 				
 			case 171:
+				return Server_GameB_Ready;
+			case 172:
 				return Server_GameB_Start;
 			
 			case 181:

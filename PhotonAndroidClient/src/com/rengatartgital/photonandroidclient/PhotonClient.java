@@ -2,6 +2,7 @@ package com.rengatartgital.photonandroidclient;
 
 
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import android.os.Handler;
@@ -22,9 +23,9 @@ import de.exitgames.client.photon.enums.ConnectionProtocol;
 public class PhotonClient extends LoadBalancingClient implements Runnable{
 	
 	static final String LOG_TAG="STConnect";
-	static final String SERVER_IP="kerkerker.artgital.com:5055";
-	//static final String SERVER_IP="192.168.2.226:5055";
-	static final String SERVER_APP="STPhotonServer";
+//	static final String SERVER_IP="kerkerker.artgital.com:5055";
+	static final String SERVER_IP="192.168.2.227:5055";
+	static final String SERVER_APP="STGameA";
 	
     Handler main_handler;
     boolean is_connected=true;
@@ -39,11 +40,13 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
 			Log.i(LOG_TAG,"Start Running!");
 			while(true){
 				
-	            this.loadBalancingPeer.service();
-	            
+	           	            
 				try{
+					
+					this.loadBalancingPeer.service();
+					 
 					Thread.sleep(40);
-				}catch (InterruptedException e){
+				}catch (Exception e){
 					e.printStackTrace();
 				}	
 				
@@ -70,6 +73,9 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
     public boolean sendSomeEvent(int event_code,HashMap<Object,Object> event_params)
     {
     	Log.i(LOG_TAG,"Send Event: "+event_code);
+    	Set<Object> lkey=event_params.keySet();
+    	for(Object k:lkey) Log.i(LOG_TAG,k+"->"+event_params.get(k));
+    	
         return this.loadBalancingPeer.opRaiseEvent((byte)event_code, event_params, false, (byte)0);       // this is received by OnEvent()
         
     }

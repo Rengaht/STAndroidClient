@@ -9,6 +9,8 @@ import android.animation.ValueAnimator;
 import android.animation.Animator.AnimatorListener;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -19,6 +21,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,15 +32,23 @@ public class GameBView extends BaseGameView {
 	
 	final float BEAT_STRENGTH_THRESHOLD=3.0f;
 	
-	private enum GameState {GameB_Wait,Rotate,Win_Lose,GameB_End};
+	private enum GameState {GameB_Wait,GameB_Ready,Rotate,Win_Lose,GameB_End};
 	GameState game_state;
 	WheelView wheel_view;
-	ImageView img_wait,img_win,img_lose,img_back,img_start,img_noway;
+	ImageView img_wait,img_win,img_lose,img_back,img_start;
 		
 	FinishImageView img_finish;
 	Button button_home;
 	
 	private ValueAnimator winlose_animator;
+	
+	private Animation blink_animation;
+	
+	private int last_car_index;
+	private int last_win;
+	
+	private int last_wheel_pos;
+	
 	
 	public GameBView(Context context) {
 		super(context);
@@ -60,13 +72,13 @@ public class GameBView extends BaseGameView {
 		wheel_view=(WheelView)getChildAt(1);
 		
 		img_wait=(ImageView)getChildAt(2);
-		img_noway=(ImageView)getChildAt(3);
-		img_start=(ImageView)getChildAt(4);
 		
-		img_win=(ImageView)getChildAt(5);
-		img_lose=(ImageView)getChildAt(6);
-		img_finish=(FinishImageView)getChildAt(7);
-		button_home=(Button)getChildAt(8);
+		img_start=(ImageView)getChildAt(3);
+		
+		img_win=(ImageView)getChildAt(4);
+		img_lose=(ImageView)getChildAt(5);
+		img_finish=(FinishImageView)getChildAt(6);
+		button_home=(Button)getChildAt(7);
 		
 		button_home.setOnClickListener(new OnClickListener(){
 			@Override
@@ -112,7 +124,7 @@ public class GameBView extends BaseGameView {
         	
         });
         
-        
+        blink_animation=AnimationUtils.loadAnimation(this.getContext(),R.anim.blink_ani);
         
 	}
 	@Override
@@ -138,6 +150,7 @@ public class GameBView extends BaseGameView {
 		Rect wait_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.wait_cx),res.getDimension(R.dimen.wait_cy),
 				res.getDimension(R.dimen.wait_width),res.getDimension(R.dimen.wait_height));
 		img_wait.layout(wait_rect.left,wait_rect.top,wait_rect.right,wait_rect.bottom);
+		img_start.layout(wait_rect.left,wait_rect.top,wait_rect.right,wait_rect.bottom);
 		
 		Rect win_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.win_cx),res.getDimension(R.dimen.win_cy),
 				res.getDimension(R.dimen.win_width),res.getDimension(R.dimen.win_height));
@@ -165,16 +178,13 @@ public class GameBView extends BaseGameView {
 	
 	private void showFinishView(){
 
-		  
-
-
 		
 		Message msg=Message.obtain(main_activity.handler,100,102,0,null);
 		main_activity.handler.sendMessage(msg);
 		
 		
-		
-		img_finish.setup(1,null,main_activity.handler);
+		Bitmap car_bmp=createCarBitmap(last_car_index,(int)(this.getWidth()*.7),(int)(this.getWidth()*.7));
+		img_finish.setup(1,car_bmp,main_activity.handler);
 		img_finish.setVisibility(View.VISIBLE);
 		
 		button_home.setVisibility(View.VISIBLE);
@@ -191,13 +201,23 @@ public class GameBView extends BaseGameView {
 	public void HandleMessage(GameEventCode action_code,TypedHashMap<Byte, Object> params){
 
 		switch(action_code){
+			case Server_GameB_Ready:
+//				main_activity.setSideIndex((Integer)params.get((byte)101));
+				
+				updateGameState(GameState.GameB_Ready);
+				break;
 			case Server_GameB_Start:
-				main_activity.setSideIndex((Integer)params.get((byte)101));
 				updateGameState(GameState.Rotate);
 				break;
 			case Server_GG:
+				
+				last_car_index=(Integer)params.get((byte)3);
+				last_win=(Integer)params.get((byte)1);		
+				
 				updateGameState(GameState.Win_Lose);
+				
 				break;
+				
 			default:
 				break;
 		}
@@ -218,19 +238,46 @@ public class GameBView extends BaseGameView {
 				img_wait.setVisibility(View.VISIBLE);
 				wheel_view.setVisibility(View.VISIBLE);
 				setWaitMode(true);
+//				main_activity.playSound(6);
 				break;
-			case Rotate:
+			case GameB_Ready:
 				img_back.setVisibility(View.VISIBLE);
 				img_start.setVisibility(View.VISIBLE);
+				img_start.startAnimation(blink_animation);
+				
 				wheel_view.setVisibility(View.VISIBLE);
+				setWaitMode(true);
+				
+				main_activity.playSound(6);
+				
+				break;
+			case Rotate:
+				this.main_activity.playSound(4);
+				
+				img_back.setVisibility(View.VISIBLE);
+				img_start.clearAnimation();
+//				img_start.setVisibility(View.VISIBLE);
+				wheel_view.setVisibility(View.VISIBLE);
+				wheel_view.start();
 				setWaitMode(false);
 				
+
 				break;
 			case Win_Lose:
 				img_back.setVisibility(View.VISIBLE);
 				setWaitMode(true);
 				wheel_view.setVisibility(View.VISIBLE);
-				img_win.setVisibility(View.VISIBLE);
+				
+				this.main_activity.playSound(5);
+				
+				if(last_win==1){
+					img_win.setVisibility(View.VISIBLE);
+//					img_win.startAnimation(blink_animation);
+				}else{
+					img_lose.setVisibility(View.VISIBLE);
+//					img_lose.startAnimation(blink_animation);
+				}
+				
 				winlose_animator.start();
 				
 				break;
@@ -249,11 +296,18 @@ public class GameBView extends BaseGameView {
 		super.Init();
 		updateGameState(GameState.GameB_Wait);
 		winlose_animator.cancel();
+		wheel_view.reset();
+		wheel_view.setColor(main_activity.side_index);
+		
+		last_wheel_pos=0;
 	}
 	@Override
 	public void End(){
 		super.End();
-//		main_activity.initGame(-1);
+		
+		img_win.clearAnimation();
+		img_lose.clearAnimation();
+
 	}
 	@Override
 	public void HandleSensor(float[] sensor_value){
@@ -262,12 +316,31 @@ public class GameBView extends BaseGameView {
 		
 	
 		double delta_strength=sensor_value[0];
-		if(Math.abs(delta_strength)>BEAT_STRENGTH_THRESHOLD){
-				
+		
+		int new_wheel_pos=0;
+		if(delta_strength>BEAT_STRENGTH_THRESHOLD) new_wheel_pos=-1;
+		else if(delta_strength<-BEAT_STRENGTH_THRESHOLD) new_wheel_pos=1;
+		
+		if(new_wheel_pos!=last_wheel_pos){
+			
 			HashMap<Object,Object> params=new HashMap<Object,Object>();
 
-			params.put((byte)1,(delta_strength>0)?-1:1);
+			params.put((byte)1,new_wheel_pos);
 			main_activity.sendEvent(GameEventCode.Game_B_Rotate,params);
+			
+//			wheel_view.setRotateAngle((float)(-delta_strength/9.8*90));
+
+			
+			last_wheel_pos=new_wheel_pos;
+		}
+		
+		
+		if(Math.abs(delta_strength)>BEAT_STRENGTH_THRESHOLD){
+				
+//			HashMap<Object,Object> params=new HashMap<Object,Object>();
+//
+//			params.put((byte)1,(delta_strength>0)?-1:1);
+//			main_activity.sendEvent(GameEventCode.Game_B_Rotate,params);
 			
 			wheel_view.setRotateAngle((float)(-delta_strength/9.8*90));
 		}else{
@@ -281,5 +354,29 @@ public class GameBView extends BaseGameView {
 		Log.i("STLog","waiting: "+set_index);
 		
 	}
-	
+	private Bitmap createCarBitmap(int index_car,int width,int height){
+		
+
+    	Bitmap oimg_avatar_bmp=null;
+		switch(index_car){
+			case 0: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_1); break;
+			case 1: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_2); break;
+			case 2: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_3); break;
+			case 3: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_4); break;
+			case 4: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_5); break;
+			case 5: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_6); break;
+			case 6: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_7); break;
+			case 7: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_8); break;
+			case 8: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_9); break;
+			case 9: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_10); break;
+			default:oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_9); break;
+		}
+		Bitmap scale_bmp=Bitmap.createScaledBitmap(oimg_avatar_bmp,width,height,true);
+		
+		return scale_bmp;
+	}
+	@Override
+	public boolean isFinish(){
+		return game_state==GameState.GameB_End;
+	}
 }

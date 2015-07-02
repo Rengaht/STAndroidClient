@@ -927,5 +927,8 @@ public class GameCView extends BaseGameView{
 	public void HandleSensor(float[] sensor_value){
 		
 	}
-	
+	@Override
+	public boolean isFinish(){
+		return game_state==GameState.GameC_End;
+	}
 }

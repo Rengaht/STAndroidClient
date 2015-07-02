@@ -10,31 +10,24 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.rengatartgital.photonandroidclient.R;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
-import android.graphics.Matrix;
 import android.graphics.Point;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
@@ -43,13 +36,10 @@ import android.util.Base64;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
-import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import de.exitgames.client.photon.TypedHashMap;
@@ -97,26 +87,35 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	
 	SoundPoolHelper mSoundPoolHelper;
-	int sound_id_start,sound_id_button,sound_id_shutter,sound_id_finish;
+//	int sound_id_start,sound_id_button,sound_id_shutter,sound_id_finish,sound_id_alarm;
+	int[] arr_sound_id;
 	
+	AlertDialog.Builder mdialog_builder;
+	AlertDialog mdialog;
 	
 	final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
     		super.handleMessage(msg);
     		
     		
-    		if(msg.what==100){
+    		if(msg.what==100){ // message from sub_view!
     			switch(msg.arg1){
     				case 100:
     					addPicToGallery((String)msg.obj);
-    					playSound(sound_id_finish);
+    					playSound(3);
     					return;
     				case 102: // rotate for finish view
     					setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     					return;
+    				case 103: // send island trigger
+    					sendEvent(GameEventCode.Game_A_Light,new HashMap<Object,Object>());
+    					return;
     			}
     			// go back to main view
-    			if(icur_game>=0 && icur_game<3) arr_game_view[icur_game].End();
+    			if(icur_game>=0 && icur_game<3){
+    				arr_game_view[icur_game].End();
+    				icur_game=-1;
+    			}
     			sendCheckIdEvent();
     			return;
     		}
@@ -145,15 +144,33 @@ public class MainActivity extends Activity implements SensorEventListener{
 					sendCheckIdEvent();
 					break;
 				case Server_Id_Game_Info:
+					
+					if(icur_game>-1){ // if is at finish stage, dont' jump to main view
+						if(arr_game_view[icur_game].isFinish()) break;
+//						if(arr_game_view[icur_game].getVisibility()==View.VISIBLE) showUnavailable(100);
+					}
+					
+					
 					initGame(-1);
     				if(params.containsKey((byte)1)){
     					int igame=(Integer)params.get((byte)1);
     					if(igame>=0){
+//    						if(params.containsKey((byte)2)){
+//    							boolean istatus=(Boolean)params.get((byte)2);
+//    							if(!istatus){
+//    								showUnavailable(0);
+//    								break;
+//    							}
+//    						}
+    						
+    						
     						setupGameButton(igame);
     						if(params.containsKey((byte)100)){
     		    				String get_id=(String)params.get((byte)100);
     		    				setUserId(get_id);
     	    				}
+    					}else{
+    						 showUnavailable(0);
     					}
     				}
     				
@@ -161,7 +178,8 @@ public class MainActivity extends Activity implements SensorEventListener{
     				break;
     				
     			case Server_Join_Success:
-//    				if(params.containsKey((byte)101)) color_id=(Integer)params.get((byte)101);
+    				
+    				if(params.containsKey((byte)101)) side_index=(Integer)params.get((byte)101);
     				if(params.containsKey((byte)102)){
     					waiting_index=(Integer)params.get((byte)102);
     					Log.i(LOG_TAG,"Waiting_Index= "+waiting_index);
@@ -171,8 +189,14 @@ public class MainActivity extends Activity implements SensorEventListener{
     					Log.i(LOG_TAG,"Waiting_Stamp= "+waiting_stamp);
     				}
     				
-    				initGame(icur_game);
-    				
+//    				initGame(icur_game);
+    				int istatus=(Integer)params.get((byte)1);
+    				if(istatus==1) initGame(icur_game);
+    				else{
+    					showUnavailable(istatus);
+    					setupGameButton(icur_game);
+    				}
+    					
     				break;
 
     			default:
@@ -181,6 +205,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     		}
     		
     	}
+
 	
     };
  
@@ -239,9 +264,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 				@Override
 				public void onClick(View v) {
 					
-					playSound(sound_id_start);
+					playSound(0);
 					HashMap<Object,Object> params=new HashMap<Object,Object>();
-					params.put((byte)1,index);
+					params.put((byte)1,icur_game);
 					if(index==1 && waiting_index!=null && waiting_stamp!=null){
 						params.put((byte)102, waiting_index);
 						params.put((byte)103, waiting_stamp);
@@ -267,27 +292,34 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         initMainView();
         
-        
+        arr_sound_id=new int[10];
         mSoundPoolHelper=new SoundPoolHelper(1, this);
-        sound_id_start=mSoundPoolHelper.load(this,R.raw.sound_start,1);
-        sound_id_button=mSoundPoolHelper.load(this,R.raw.sound_button,1);
-        sound_id_shutter=mSoundPoolHelper.load(this, R.raw.sound_shutter,1);
-        sound_id_finish=mSoundPoolHelper.load(this, R.raw.sound_finish,1);
+        arr_sound_id[0]=mSoundPoolHelper.load(this,R.raw.sound_start,1);
+        arr_sound_id[1]=mSoundPoolHelper.load(this,R.raw.sound_button,1);
+        arr_sound_id[2]=mSoundPoolHelper.load(this, R.raw.sound_shutter,1);
+        arr_sound_id[3]=mSoundPoolHelper.load(this, R.raw.sound_finish,1);
+        arr_sound_id[4]=mSoundPoolHelper.load(this,R.raw.sound_car_start,1);
+        arr_sound_id[5]=mSoundPoolHelper.load(this,R.raw.sound_car_end,1);
+        arr_sound_id[6]=mSoundPoolHelper.load(this,R.raw.sound_beep,1);
+        arr_sound_id[7]=mSoundPoolHelper.load(this,R.raw.sound_ascore,1);
+        arr_sound_id[8]=mSoundPoolHelper.load(this,R.raw.sound_afinish,1);
+        arr_sound_id[9]=mSoundPoolHelper.load(this,R.raw.sound_button_short,1);
         
+        mSoundPoolHelper.setLoop(arr_sound_id[6],-1);
         
     }
     
     public void playButtonSound(){
-    	playSound(sound_id_button);
+    	playSound(1);
     }
     public void playShutterSound(){
-    	playSound(sound_id_shutter);
+    	playSound(2);
     }
-//    public void playFinishSound(){
-//    	playSound(sound_id_finish);
-//    }
-    private void playSound(int soundId){
-        mSoundPoolHelper.play(soundId);
+    
+    
+
+    public void playSound(int isound){
+        mSoundPoolHelper.play(arr_sound_id[isound]);
     }
     
     public void Reconnect(){
@@ -386,6 +418,38 @@ public class MainActivity extends Activity implements SensorEventListener{
     	}
     }
     
+    
+
+	private void showUnavailable(int istatus){
+		
+		if(mdialog!=null && mdialog.isShowing()) return;
+		
+		switch(istatus){
+			case 0:
+			case 2:
+				mdialog_builder= new AlertDialog.Builder(this);
+				mdialog_builder.setTitle("沒空");
+				mdialog_builder.setMessage("等等再來!");
+				mdialog_builder.setPositiveButton("好吧",
+		                new DialogInterface.OnClickListener(){
+		                    public void onClick(DialogInterface dialoginterface, int i){}
+		                });
+				mdialog=mdialog_builder.create();
+				mdialog.show();
+			case 100:
+				mdialog_builder= new AlertDialog.Builder(this);
+				mdialog_builder.setTitle("啦啦啦");
+				mdialog_builder.setMessage("開始新遊戲");
+				mdialog_builder.setPositiveButton("好吧",
+		                new DialogInterface.OnClickListener(){
+		                    public void onClick(DialogInterface dialoginterface, int i){}
+		                });
+				mdialog=mdialog_builder.create();
+				mdialog.show();
+				break;
+		}
+	}
+    
     // EndRegion
     
     public void setUserId(String set_client){
@@ -451,7 +515,6 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 		if(icur_game<0) return;
 		
-		arr_game_view[icur_game].HandleSensor(event.values);
 		arr_game_view[icur_game].HandleSensor(event.values);
 
 	
@@ -542,9 +605,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 			e.printStackTrace();
 		}
 		
-		if(client_id.length()<1) client_id=null;
-		if(waiting_index<0) waiting_index=null;
-		if(waiting_stamp.length()<1) waiting_stamp=null;
+		if(client_id!=null && client_id.length()<1) client_id=null;
+		if(waiting_index!=null && waiting_index<0) waiting_index=null;
+		if(waiting_stamp!=null && waiting_stamp.length()<1) waiting_stamp=null;
 		
 		if(client_id!=null) Log.i(LOG_TAG,">>> USER:　"+client_id);
 		if(waiting_index!=null && waiting_stamp!=null) Log.i(LOG_TAG,">>> WAITING:　"+waiting_index+" "+waiting_stamp);
@@ -598,7 +661,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    
 	    Log.i("STLog","---- PAUSE ----");
 	     //TODO: save tmp data
-	    arr_game_view[icur_game].End();
+	    if(icur_game>-1) arr_game_view[icur_game].End();
 	    //initGame(-1);
 	    //((GameCView)arr_game_view[2]).stopCamera();
 	    

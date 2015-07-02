@@ -4,5 +4,44 @@
     <string name="app_name">STClient_P</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-
+	
+    
+     <string-array name="_ahouse_title">
+        <item>隔熱節能屋</item>
+        <item>高爐水泥綠建築</item>
+        <item>預鑄構造</item>
+        <item>遮陽斜屋頂建築</item>
+        <item>智慧綠建築</item>        
+    </string-array>
+    
+    <string-array name="_apart1_title">
+        <item>PU屋頂隔熱法</item>
+        <item>屋頂隔熱毯</item>
+        <item>環保革熱磚</item>
+        <item>變頻空調冷氣</item>               
+    </string-array>
+    
+    <string-array name="_apart2_title">
+        <item>風力發電機1</item>
+        <item>風力發電機2</item>
+        <item>生物多樣性1</item>
+        <item>生物多樣性2</item>               
+    </string-array>
+    
+     <string-array name="_apart3_title">
+        <item>LED燈泡（白光）</item>
+        <item>省電燈泡 （黃光）</item>
+        <item>單結晶矽太陽能板</item>
+        <item>多結晶矽太陽能板</item>               
+    </string-array>
+    
+    <string-array name="_apart4_title">
+        <item>雨水集槽</item>
+        <item>屋頂雨水回收管線</item>
+        <item>基地保水</item>
+        <item>汙水處理器</item>               
+    </string-array>
+    
+    
+     
 </resources>

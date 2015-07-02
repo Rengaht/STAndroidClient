@@ -58,6 +58,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	Handler main_handle;
 	boolean save_finish;
 	
+	int index_game;
 	
 	public FinishImageView(Context context){
 		super(context);
@@ -79,21 +80,26 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		cur_width=getWidth();
 		cur_height=getHeight();
 		
-		
+		index_game=igame;
 		
 		switch(igame){
 			case 0:
+				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamea_end_bg);
+				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
+				break;
 			case 1:
 				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg);
+				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
 				break;
 			case 2:
 				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg);
+				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_notice);
 				break;
 		}
 		
 		back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
 		
-		notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_notice);
+		
 		notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
 		
 		
@@ -192,7 +198,12 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		if(back_bmp!=null) canvas.drawBitmap(back_bmp,0,0,mpaint);
 		if(front_bmp!=null && !front_bmp.isRecycled()){
 			canvas.save();
-			canvas.translate(cur_width/2,(int)(cur_height*.35));
+			
+			if(index_game==2) canvas.translate(cur_width/2,(int)(cur_height*.35));
+			else if(index_game==1) canvas.translate(cur_width/1.9f,(int)(cur_height*.35));
+			else canvas.translate(cur_width/2,(int)(cur_height*.28));
+			
+			
 			canvas.scale(.75f,.75f);
 			canvas.drawBitmap(front_bmp,(int)(-front_bmp.getWidth()/2),(int)(-front_bmp.getHeight()/2),mpaint);
 			canvas.restore();

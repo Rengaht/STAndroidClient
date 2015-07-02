@@ -60,6 +60,7 @@ public abstract class BaseGameView extends FrameLayout{
 	abstract public void HandleMessage(GameEventCode action_code,TypedHashMap<Byte,Object> params);
 	abstract public void HandleSensor(float[] sensor_value);
 	
+	abstract public boolean isFinish();
 	
 //	Rect getLayoutCoordinate(int pleft,int ptop,int pright,int pbottom){
 //		

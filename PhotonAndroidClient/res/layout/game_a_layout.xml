@@ -4,39 +4,118 @@
     android:layout_height="match_parent" >
     
 
+   <ImageView
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:src="@drawable/gamea_ui_bg"
+       />
+   <com.rengatartgital.photonandroidclient.IslandView
+        android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       />
 
-<EditText
-   android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-     android:layout_marginTop="100dp"
-      android:hint="Enter Name"
-     android:ems="10" >
-     </EditText>
-<Button 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="150dp"
-    android:text="SEND"
+	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_left"
+    />
+   	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_right"
     />
    
-<Button 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="200dp"
-    android:text="LEFT"
-    />
-   <Button 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginTop="250dp"
-    android:text="RIGHT"
-    />
+
+	
+	
+	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_next"
+	    />
    
-<ImageView
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:src="@drawable/game_over"
-    />
+	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_done"
+	    />
+   	
+   	<ImageView
+   	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:src="@drawable/gamea_name"
+   	    />
+	<EditText
+   		android:layout_width="match_parent"
+    	android:layout_height="wrap_content"
+    	android:background="#e5e642"
+	    android:textColor="#ffffff"
+	    android:singleLine="true"
+	    android:textAllCaps="true"
+	    android:maxLength="8" ></EditText>
+	
+   	<ImageView
+   	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:src="@drawable/gamea_choose_people"
+   	    />
+   	
+   	<ImageView
+   	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:src="@drawable/gamea_step1"
+   	    />
+   	<TextView 
+   	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:textColor="#f5ee36"
+	    android:text="part_title"
+	    android:editable="false"
+	    android:gravity="center"
+	    android:padding="0dp"
+	    />
+   	
+   	<TextView 
+   	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:textColor="#f5ee36"
+	    android:text="+300"
+	    android:gravity="center"
+	    android:editable="false"
+	    android:padding="0dp"
+	    android:typeface="monospace"
+	    />
+   	
+   	
+	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_arrow_left"
+	    />
+   
+	<Button 
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamea_arrow_right"
+	    />
+	
+	<com.rengatartgital.photonandroidclient.ATriggerHintView
+		android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:visibility="invisible"
+	    />
+	<com.rengatartgital.photonandroidclient.FinishImageView
+	    android:id="@+id/finish_img"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:visibility="invisible"
+	    />
 
-
+	<Button
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:background="@drawable/gamec_home"
+	    android:visibility="invisible"
+	    />
+	
 </merge>
