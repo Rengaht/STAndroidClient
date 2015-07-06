@@ -18,6 +18,7 @@ import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,10 +37,13 @@ import android.util.Base64;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import de.exitgames.client.photon.TypedHashMap;
@@ -91,7 +95,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	int[] arr_sound_id;
 	
 	AlertDialog.Builder mdialog_builder;
-	AlertDialog mdialog;
+	Dialog mdialog;
 	
 	final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
@@ -109,6 +113,12 @@ public class MainActivity extends Activity implements SensorEventListener{
     					return;
     				case 103: // send island trigger
     					sendEvent(GameEventCode.Game_A_Light,new HashMap<Object,Object>());
+    					return;
+    				case 200: // time out
+    					showUnavailable(200);
+    					break;
+    				case 500:
+    					showUnavailable(500);
     					return;
     			}
     			// go back to main view
@@ -292,7 +302,7 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         initMainView();
         
-        arr_sound_id=new int[10];
+        arr_sound_id=new int[14];
         mSoundPoolHelper=new SoundPoolHelper(1, this);
         arr_sound_id[0]=mSoundPoolHelper.load(this,R.raw.sound_start,1);
         arr_sound_id[1]=mSoundPoolHelper.load(this,R.raw.sound_button,1);
@@ -305,7 +315,23 @@ public class MainActivity extends Activity implements SensorEventListener{
         arr_sound_id[8]=mSoundPoolHelper.load(this,R.raw.sound_afinish,1);
         arr_sound_id[9]=mSoundPoolHelper.load(this,R.raw.sound_button_short,1);
         
+        arr_sound_id[10]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_1,1);
+        arr_sound_id[11]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_2,1);
+        arr_sound_id[12]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_3,1);
+        arr_sound_id[13]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_4,1);
+        
         mSoundPoolHelper.setLoop(arr_sound_id[6],-1);
+        
+        
+        
+        // alert dialog
+        mdialog=new Dialog(this,R.style.Theme_Dialog);
+		mdialog.setContentView(R.layout.message_dialog_layout);
+		mdialog.setCanceledOnTouchOutside(true);
+		Window window = mdialog.getWindow();
+		window.setLayout(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		window.setGravity(Gravity.CENTER);
+		
         
     }
     
@@ -376,6 +402,9 @@ public class MainActivity extends Activity implements SensorEventListener{
     // Region -- Handle UI
     
     private void setupGameButton(int igame){
+    	
+    	if(mdialog.isShowing()) mdialog.dismiss();
+    	
 		icur_game=igame;
 		
 		initMainView();
@@ -423,31 +452,26 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private void showUnavailable(int istatus){
 		
 		if(mdialog!=null && mdialog.isShowing()) return;
-		
+		String text_show="";
 		switch(istatus){
 			case 0:
 			case 2:
-				mdialog_builder= new AlertDialog.Builder(this);
-				mdialog_builder.setTitle("沒空");
-				mdialog_builder.setMessage("等等再來!");
-				mdialog_builder.setPositiveButton("好吧",
-		                new DialogInterface.OnClickListener(){
-		                    public void onClick(DialogInterface dialoginterface, int i){}
-		                });
-				mdialog=mdialog_builder.create();
-				mdialog.show();
+				text_show="等等再來";
+				break;
 			case 100:
-				mdialog_builder= new AlertDialog.Builder(this);
-				mdialog_builder.setTitle("啦啦啦");
-				mdialog_builder.setMessage("開始新遊戲");
-				mdialog_builder.setPositiveButton("好吧",
-		                new DialogInterface.OnClickListener(){
-		                    public void onClick(DialogInterface dialoginterface, int i){}
-		                });
-				mdialog=mdialog_builder.create();
-				mdialog.show();
+				text_show="開始新遊戲";
+				break;
+			case 200:
+				text_show="時間到";
+				break;				
+			case 500:
+				text_show="沒有名字";
 				break;
 		}
+		TextView _text=(TextView)mdialog.findViewById(R.id.text_message);
+		_text.setText(text_show);
+		
+		mdialog.show();
 	}
     
     // EndRegion

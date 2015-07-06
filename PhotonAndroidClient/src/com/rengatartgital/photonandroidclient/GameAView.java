@@ -20,6 +20,9 @@ import java.util.HashMap;
 
 
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import com.rengatartgital.photonandroidclient.IslandView.IlandMode;
 import com.rengatartgital.photonandroidclient.R;
 
@@ -34,7 +37,9 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Editable;
 import android.text.InputFilter;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
@@ -50,12 +55,13 @@ import android.widget.TextView;
 
 public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	
-	private static final int POLL_INTERVAL=300;
+	private static final int POLL_INTERVAL=800;
 	private static final int MSELECTION=4;
 	private static final int MHOUSE=5;
 	
 	private static final float SHAKE_THRESHOLD=5;
 	private static final int SENSOR_RESOLUTION=30;
+	private static final int NAME_MAX_LENGTH=6;
 	
 //	private Button send_button,left_side_button,right_side_button;
 	private EditText name_text;
@@ -81,6 +87,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	private float[] last_sensor_value;
 	private int sensor_frame;
 	
+	boolean lock_trigger,lock_step;
 	
 	private ValueAnimator anima_score_in,anima_score_out,anima_part_in,anima_part_out;
 	
@@ -119,7 +126,13 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		img_back=(ImageView)getChildAt(0);
 		iland_view=(IslandView)getChildAt(1);
-		
+		iland_view.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View arg0){
+				sendTrigger(GameEventCode.Game_A_Light);
+			}
+			
+		});
 		
 		
 		
@@ -133,6 +146,39 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		name_text=(EditText)getChildAt(7);
 		int maxLength = 8;    
 		name_text.setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxLength)});
+		name_text.addTextChangedListener(new TextWatcher(){
+			@Override
+			public void afterTextChanged(Editable arg0) {
+				
+				/** calculate number of input texts to constrain text length */
+				String cur_text=arg0.toString();
+				int total_count=0;
+				for(int i=0;i<cur_text.length();++i){
+					char c=cur_text.charAt(i);
+
+					/** Chinese word as 2, English as 1 */
+					if(c>256) total_count+=2;
+					else total_count+=1;
+//					Log.i(SOCKET_TAG,c+" #= "+total_count+" "+cur_text.substring(0,i+1));
+					
+					/** delete overflow texts */
+					if(total_count>NAME_MAX_LENGTH){
+						arg0.delete(i,cur_text.length());
+						break;
+					}
+				}
+			}
+
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1,
+					int arg2, int arg3) {				
+			}
+
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2,
+					int arg3) {
+			}
+		});
 		
 		img_choose_people=(ImageView)getChildAt(8);
 		
@@ -152,13 +198,22 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		btn_next.setOnClickListener(new OnClickListener(){
 				@Override
 				public void onClick(View arg0){
+					
+					if(!iland_view.animationFinished()) return;
+					if(lock_step) return;
+					 
+					 
 					HashMap<Object,Object> params=new HashMap<Object,Object>();
 					
 					switch(game_state){						
 						
 						case SetName:
 							String str_name=name_text.getText().toString();
-							if(str_name.length()<1) return;
+							if(str_name.length()<1){ 
+								Message msg=Message.obtain(main_activity.handler,100,500,0,null);
+						        main_activity.handler.sendMessage(msg);
+								return;
+							}
 							
 							String cap_str="";
 							for(int i=0;i<str_name.length();++i){
@@ -216,6 +271,9 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			 @Override
 			 public void onClick(View arg0){
 				 
+				 if(!iland_view.animationFinished()) return;
+				 if(lock_step) return;
+					
 				 showPartScore();
 //				 main_activity.playSound(8);
 //				 HashMap<Object,Object> params=new HashMap<Object,Object>();
@@ -228,7 +286,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			 }
 		});
 		 
-		 btn_left.setOnClickListener(new OnClickListener(){
+		btn_left.setOnClickListener(new OnClickListener(){
 			 @Override
 			 public void onClick(View arg0){
 				 main_activity.setSideIndex(1);
@@ -253,6 +311,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		btn_arrow_left.setOnClickListener(new OnClickListener(){
 			 @Override
 			 public void onClick(View arg0){
+				 
+				if(!iland_view.animationFinished()) return;
+				if(lock_step) return;
+				
+				
 				if(itmp_cat==0||itmp_cat==5) updatePartSelection((itmp_selection+MHOUSE-1)%MHOUSE);
 				else updatePartSelection((itmp_selection+MSELECTION-1)%MSELECTION);
 				main_activity.playSound(9);
@@ -262,6 +325,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		btn_arrow_right.setOnClickListener(new OnClickListener(){
 			 @Override
 			 public void onClick(View arg0){
+				 
+				if(!iland_view.animationFinished()) return;
+				if(lock_step) return;
+				
 				if(itmp_cat==0||itmp_cat==5) updatePartSelection((itmp_selection+1)%MHOUSE);
 				else updatePartSelection((itmp_selection+1)%MSELECTION);
 				main_activity.playSound(9);
@@ -285,7 +352,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		
 		last_sensor_value=new float[3];
-		for(int i=0;i<3;++i) last_sensor_value[i]=0;
+		for(int i=0;i<3;++i) last_sensor_value[i]=-1;
 		
 		
 		
@@ -311,6 +378,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		anima_part_out.addUpdateListener(this);
 		anima_part_out.setStartDelay(300);
 		anima_part_out.setDuration(300);
+		
+		
+		lock_trigger=false;
+		lock_step=false;
+		
 	}
 	
 	
@@ -417,7 +489,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				Log.i("STLog","Game A End");
 				if(game_state==GameState.SetTrigger) updateGameState(GameState.GameA_End);
 				else{ // if not finish,jump to main
-					Message msg=Message.obtain(main_activity.handler,100,101,0,null);
+					Message msg=Message.obtain(main_activity.handler,100,200,0,null);
 			        main_activity.handler.sendMessage(msg);
 				}
 				break;
@@ -425,6 +497,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				if((Integer)params.get((byte)1)==1){
 					updateGameState(GameState.SetName);
 					main_activity.setSideIndex((Integer)params.get((byte)101));
+					iland_view.setSide((Integer)params.get((byte)101));
 				}
 				break;
 			case Server_House_Success:
@@ -465,7 +538,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		btn_next.setEnabled(false);
 		btn_done.setEnabled(false);
+		btn_arrow_left.setEnabled(false);
+		btn_arrow_right.setEnabled(false);
 		
+		lock_step=true;
 		anima_score_in.start();
 	}
 	private void goNextState(){
@@ -673,6 +749,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		for(int i=0;i<3;++i) last_sensor_value[i]=0;
 		
+		lock_step=false;
+		btn_arrow_left.setEnabled(true);
+		btn_arrow_right.setEnabled(true);
+		
 	}
 	@Override
 	public void End() {
@@ -681,12 +761,13 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		if(blow_sensor!=null) blow_sensor.Stop();
 		
 
-		
 	}
 	
 	// Region -- Handle Blow Sensor
 	private void startBlowSensor(){
+		
 		if(blow_sensor==null) blow_sensor=new BlowSensor();
+		
 		blow_sensor.Start();		
 		
 		blow_handler.postDelayed(pollTask,POLL_INTERVAL);
@@ -695,8 +776,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	private void updateBlowStatus(){
 //		Log.i("STLog","!!! Blow Detected !!!");
 		
-		HashMap<Object,Object> params=new HashMap<Object,Object>();
-		main_activity.sendEvent(GameEventCode.Game_A_Blow,params);
+		sendTrigger(GameEventCode.Game_A_Blow);
 	}
 	
 	// EndRegion
@@ -707,6 +787,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		if(game_state!=GameState.SetTrigger) return;
 		
+		if(last_sensor_value[0]==-1 && last_sensor_value[1]==-1 && last_sensor_value[2]==-1){
+			for(int i=0;i<3;++i) last_sensor_value[i]=sensor_value[i];
+			return;
+		}
+		
 		sensor_frame=(sensor_frame+1)%SENSOR_RESOLUTION;
 		if(sensor_frame!=0) return;
 		
@@ -716,14 +801,53 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		for(int i=0;i<3;++i) delta_strength+=Math.abs(sensor_value[i]-last_sensor_value[i]);
 		Log.i("Sensor","delta_strength= "+delta_strength);
 		
+		
 		if(delta_strength>SHAKE_THRESHOLD){
-			main_activity.sendEvent(GameEventCode.Game_A_Shake,new HashMap<Object,Object>());
+			sendTrigger(GameEventCode.Game_A_Shake);
 			sensor_frame=0;
 		}
 		
 		for(int i=0;i<3;++i) last_sensor_value[i]=sensor_value[i];
 		
 	}
+	
+	private void sendTrigger(GameEventCode ev_code){
+		
+		
+		if(game_state!=GameState.SetTrigger) return;
+		if(lock_trigger) return;
+		
+		
+    	
+		main_activity.sendEvent(ev_code,new HashMap<Object,Object>());
+		switch(ev_code){
+			case Game_A_Light:
+				if(iland_view.arr_ipart[3]>1) main_activity.playSound(11);
+				else main_activity.playSound(10);
+				break;
+			case Game_A_Blow:
+				if(iland_view.arr_ipart[2]>1) main_activity.playSound(13);
+				else main_activity.playSound(11);
+				break;
+			case Game_A_Shake:
+				main_activity.playSound(12);
+				break;	
+		}
+		
+		
+		lock_trigger=true;
+		Timer timer=new Timer();
+    	TimerTask task=new TimerTask(){
+			@Override
+			public void run(){
+				lock_trigger=false;
+			}
+    	};
+    	timer.schedule(task, 1000);
+    	
+	}
+	
+	
 	@Override
 	public void onAnimationUpdate(ValueAnimator animator){
 		
@@ -751,10 +875,13 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			
 			// fade in part!!
 			
-//			if(animator.getAnimatedFraction()==1){
-//				//go next_state
+			if(animator.getAnimatedFraction()==1){
+				//go next_state
 //				goNextState();
-//			}
+				lock_step=false;
+				btn_arrow_left.setEnabled(true);
+				btn_arrow_right.setEnabled(true);
+			}
 			
 		}else if(animator.equals(anima_part_out)){
 			float _val=(Float)animator.getAnimatedValue();

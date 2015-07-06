@@ -8,7 +8,7 @@ import android.util.Log;
 public class BlowSensor {
 	
 	 static final private double EMA_FILTER = 0.6;
-	 static final private double BLOW_THRES = 0.8;
+	 static final private double BLOW_THRES = 0.85;
 	 
 	 private MediaRecorder recorder = null;
 	 private double mEMA = 0.0;

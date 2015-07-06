@@ -22,7 +22,8 @@ import android.view.View.MeasureSpec;
 public class IslandView extends View implements AnimatorUpdateListener{
 	
 	final int MPART=6;
-	
+	final int[] ORDER_PART={0,1,3,2,4,5}; 
+			
 	enum IlandMode {PEOPLE,BUILD,FINAL};
 	private IlandMode imode;
 	
@@ -34,7 +35,7 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	Bitmap bmp_land;
 	Paint paint_bmp,paint_text,paint_stroke,paint_uppest;
 	
-	Rect rect_build,rect_final_people;
+	Rect rect_build,rect_build_high,rect_choose_people,rect_final_people;
 	Rect rect_img_build,rect_img_people;
 	
 	Handler main_handle;
@@ -48,6 +49,10 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	private Bitmap bmp_dest_part;
 	
 	private boolean final_out_finish=false; 
+	
+	private boolean left_right=true;
+	
+	private boolean is_changing=false;
 	
 	
 	public IslandView(Context context){
@@ -122,13 +127,27 @@ public class IslandView extends View implements AnimatorUpdateListener{
 //		mat_final_people.postTranslate((r-l)*.1189f,(b-t)*.72f);
 //		mat_final_people.preScale(.87f*pscale,.87f*pscale);
 		
+		float scale_build=.8f;
+		
 		rect_build=new Rect();
-		rect_build.left=(int)(twid*.11f); rect_build.top=0;
-		rect_build.right=(int)(twid*.89f); rect_build.bottom=(int)(thei*.7757f);
+		rect_build.left=(int)(twid*(.5f-.78f*scale_build/2)); rect_build.top=(int)(thei*(.72f-.7242f*scale_build));
+		rect_build.right=(int)(twid*(.5f+.78f*scale_build/2)); rect_build.bottom=(int)(thei*.72f);
+		
+		
+		rect_build_high=new Rect();
+		rect_build_high.left=(int)(twid*(.5f-.78f*scale_build/2)); rect_build_high.top=(int)(thei*(.72f-.79f*scale_build));
+		rect_build_high.right=(int)(twid*(.5f+.78f*scale_build/2)); rect_build_high.bottom=(int)(thei*.72f);
+		
 		
 		rect_final_people=new Rect();
 		rect_final_people.left=(int)(twid*.12); rect_final_people.top=(int)(thei*.72f);
 		rect_final_people.right=(int)(twid*.352f); rect_final_people.bottom=(int)(thei*.9945f);
+		
+		float pscale=.88f;
+		
+		rect_choose_people=new Rect();
+		rect_choose_people.left=(int)(twid*(.5f-.133f*pscale)); rect_choose_people.top=(int)(thei*(.62f-.295f*pscale));
+		rect_choose_people.right=(int)(twid*(.5f+.133f*pscale)); rect_choose_people.bottom=(int)(thei*.62f);
 		
 		paint_text.setTextSize(twid*.12f);
 		paint_stroke.setTextSize(twid*.12f);
@@ -181,8 +200,8 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		// people
 		if(arr_bmp_part[MPART-1]!=null){
 			if(imode==IlandMode.PEOPLE){
-				if(iupp_part==5) mcanvas.drawBitmap(arr_bmp_part[MPART-1],twid*0.3667f,thei*0.3175f,paint_uppest);
-				else mcanvas.drawBitmap(arr_bmp_part[MPART-1],twid*0.3667f,thei*0.3175f,paint_bmp);
+				if(iupp_part==5) mcanvas.drawBitmap(arr_bmp_part[MPART-1],null,rect_choose_people,paint_uppest);
+				else mcanvas.drawBitmap(arr_bmp_part[MPART-1],null,rect_choose_people,paint_bmp);
 				canvas.drawBitmap(mbmp,mat_identity,paint_bmp);
 				return;
 			} 			
@@ -191,13 +210,24 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		
 		// draw building
 		
+//		mcanvas.save();
+//		mcanvas.scale(.75f,.75f);
 		
-		for(int i=0;i<MPART-1;++i){
+		for(int x=0;x<MPART-1;++x){
+			int i=ORDER_PART[x];
 			if(arr_bmp_part[i]!=null){
-				if(i==iupp_part) mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build,paint_uppest);
-				else mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build,paint_bmp); 
+				
+				if(i==2 && arr_ipart[0]==4 && arr_ipart[2]==1){
+					if(i==iupp_part) mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build_high,paint_uppest);
+					else mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build_high,paint_bmp);
+				}else{
+					if(i==iupp_part) mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build,paint_uppest);
+					else mcanvas.drawBitmap(arr_bmp_part[i],null,rect_build,paint_bmp);
+				}
+				
 			}
 		}
+//		mcanvas.restore();
 		
 		
 		
@@ -229,7 +259,12 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		canvas.drawBitmap(mbmp,mat_identity,paint_bmp);
 		
 	}
-	
+	public void setSide(int set_left_right){
+		left_right=(set_left_right==1);
+		
+		if(!left_right) paint_text.setARGB(255,239,74,82);
+		else paint_text.setARGB(255,5,103,177);
+	}
 	public void setName(String set_name, int set_people){
 		str_name=set_name;
 		str_name.toUpperCase();
@@ -238,8 +273,13 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	}
 	public void updatePart(int ibuild,int icat,int ipart){
 		
+		if(is_changing){
+			return;
+		}
+		
 		if(icat==5) imode=IlandMode.PEOPLE;
 		else imode=IlandMode.BUILD;
+		
 		
 		
 		arr_ipart[icat]=ipart;
@@ -268,6 +308,9 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		bmp_dest_part=BitmapFactory.decodeResource(getResources(),res_id);
 		
 //		anima_part_out.setDuration(300);
+		
+		
+		is_changing=true;
 		anima_part_out.start();
 		
 		
@@ -294,23 +337,23 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		
 	}
 	
-	@Override
-	public boolean onTouchEvent(MotionEvent event){
-		
-		if(event.getAction()==MotionEvent.ACTION_DOWN){
-			
-			if(imode==IlandMode.FINAL){
-				// send trigger
-				if(main_handle!=null){
-					Message msg=Message.obtain(main_handle,100,103,0,null);
-					main_handle.sendMessage(msg);
-				}
-			}
-			return true;
-		}
-		
-		return false;
-	}
+//	@Override
+//	public boolean onTouchEvent(MotionEvent event){
+//		
+//		if(event.getAction()==MotionEvent.ACTION_DOWN){
+//			
+//			if(imode==IlandMode.FINAL){
+//				// send trigger
+//				if(main_handle!=null){
+//					Message msg=Message.obtain(main_handle,100,103,0,null);
+//					main_handle.sendMessage(msg);
+//				}
+//			}
+//			return true;
+//		}
+//		
+//		return false;
+//	}
 	@Override
 	public void onAnimationUpdate(ValueAnimator animator){
 		
@@ -327,7 +370,9 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		
 		
 		if(animator.equals(anima_part_in)){
-					
+			if(animator.getAnimatedFraction()==1){
+				is_changing=false;
+			}
 		}else if(animator.equals(anima_part_out)){
 			if(animator.getAnimatedFraction()==1){
 				
@@ -346,6 +391,10 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		}
 		postInvalidate();
 		
+	}
+	
+	public boolean animationFinished(){
+		return !is_changing;
 	}
 	
 }
