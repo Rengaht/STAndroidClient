@@ -35,6 +35,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
@@ -59,9 +60,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	private static final int MSELECTION=4;
 	private static final int MHOUSE=5;
 	
+	
 	private static final float SHAKE_THRESHOLD=5;
 	private static final int SENSOR_RESOLUTION=30;
-	private static final int NAME_MAX_LENGTH=6;
+	private static final int NAME_MAX_LENGTH=8;
 	
 //	private Button send_button,left_side_button,right_side_button;
 	private EditText name_text;
@@ -78,6 +80,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	Button btn_home;
 	
 	ATriggerHintView hint_view;
+	
+	ACountDownView count_view;
+//	TextView notice_view;
+	ImageView notice_view;
 	
 	private String[] arr_part_title;
 	
@@ -124,6 +130,8 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		inflater.inflate(R.layout.game_a_layout,this,true);
 		
 		
+		
+		
 		img_back=(ImageView)getChildAt(0);
 		iland_view=(IslandView)getChildAt(1);
 		iland_view.setOnClickListener(new OnClickListener(){
@@ -144,6 +152,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		img_name=(ImageView)getChildAt(6);
 		name_text=(EditText)getChildAt(7);
+		
 		int maxLength = 8;    
 		name_text.setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxLength)});
 		name_text.addTextChangedListener(new TextWatcher(){
@@ -152,18 +161,29 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				
 				/** calculate number of input texts to constrain text length */
 				String cur_text=arg0.toString();
+				boolean illegal_char=false;
+				
 				int total_count=0;
 				for(int i=0;i<cur_text.length();++i){
 					char c=cur_text.charAt(i);
 
 					/** Chinese word as 2, English as 1 */
 					if(c>256) total_count+=2;
-					else total_count+=1;
-//					Log.i(SOCKET_TAG,c+" #= "+total_count+" "+cur_text.substring(0,i+1));
+					else{
+						if(c<48 || (c>57 && c<65) || (c>90 && c<97) || (c>122)) illegal_char=true;
+						else total_count+=1;
+					}
+//					Log.i("STLog",c+" #= "+total_count+" "+cur_text.substring(0,i+1));
+					
+					if(illegal_char){
+						//TODO:!!!
+						arg0.delete(i,cur_text.length());		
+						break;
+					}
 					
 					/** delete overflow texts */
 					if(total_count>NAME_MAX_LENGTH){
-						arg0.delete(i,cur_text.length());
+						arg0.delete(i,cur_text.length());						
 						break;
 					}
 				}
@@ -179,6 +199,8 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 					int arg3) {
 			}
 		});
+		Typeface typeface_name=Typeface.createFromAsset(this.getContext().getAssets(),"fonts/combined.otf");
+		name_text.setTypeface(typeface_name);
 		
 		img_choose_people=(ImageView)getChildAt(8);
 		
@@ -190,9 +212,28 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		btn_arrow_right=(Button)getChildAt(13);
 		
 		hint_view=(ATriggerHintView)getChildAt(14);
+		count_view=(ACountDownView)getChildAt(15);
 		
-		img_finish=(FinishImageView)getChildAt(15);
-		btn_home=(Button)getChildAt(16);
+		
+		notice_view=(ImageView)getChildAt(16);
+		notice_view.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View tview){
+				//TODO: fade-out self
+				tview.setVisibility(View.INVISIBLE);
+//				count_view.start();
+			}
+			
+		});
+		
+		img_finish=(FinishImageView)getChildAt(17);
+		btn_home=(Button)getChildAt(18);
+		
+		
+		guide_view=(TextView)getChildAt(19);
+		setupGuideText();
+		
+		
 		
 		itmp_selection=0;
 		btn_next.setOnClickListener(new OnClickListener(){
@@ -384,8 +425,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		lock_step=false;
 		
 	}
-	
-	
+	@Override
+	public void setMainActivity(MainActivity main_act){
+		super.setMainActivity(main_act);
+		count_view.setHandler(main_act.handler);
+	}
 	
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b){
@@ -404,6 +448,9 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		img_back.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		img_finish.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		
+		guide_view.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
+		guide_view.setTextSize(Math.max(full_rect.width()/12,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
+		
 		
 		Rect name_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.aname_title_cx),res.getDimension(R.dimen.aname_title_cy),
 				res.getDimension(R.dimen.aname_title_width),res.getDimension(R.dimen.aname_title_height));
@@ -412,8 +459,9 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		Rect rname_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.aname_region_cx),res.getDimension(R.dimen.aname_region_cy),
 				res.getDimension(R.dimen.aname_region_width),res.getDimension(R.dimen.aname_region_height));
 		name_text.layout(rname_rect.left,rname_rect.top,rname_rect.right,rname_rect.bottom);
-		name_text.setTextSize(rname_rect.height()*.7f);
 		
+		
+		name_text.setTextSize(rname_rect.height()*.5f);
 		
 		
 		Rect choose_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.achoose_people_cx),res.getDimension(R.dimen.achoose_people_cy),
@@ -461,10 +509,24 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		hint_view.setupBitmap(hint_rect.left,hint_rect.top,hint_rect.right,hint_rect.bottom);
 		
 		
+		Rect count_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.acount_cx),res.getDimension(R.dimen.acount_cy),
+				res.getDimension(R.dimen.acount_width),res.getDimension(R.dimen.acount_height));
+		count_view.layout(count_rect.left,count_rect.top,count_rect.right,count_rect.bottom);
+		
+		Rect notice_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.anotice_cx),res.getDimension(R.dimen.anotice_cy),
+				res.getDimension(R.dimen.anotice_width),res.getDimension(R.dimen.anotice_height));
+		notice_view.layout(notice_rect.left,notice_rect.top,notice_rect.right,notice_rect.bottom);
+//		notice_view.setTextSize(Math.max(notice_rect.width()/15,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
+//		notice_view.invalidate();
+		
+//		int pad=(int)((float)notice_rect.width()*.2f);
+//		notice_view.setPadding(pad,pad,pad,pad);
+		
+		
 		Rect text_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.apart_title_cx),res.getDimension(R.dimen.apart_title_cy),
 				res.getDimension(R.dimen.apart_title_width),res.getDimension(R.dimen.apart_title_height));
 		text_part_title.layout(l,text_rect.top,r,text_rect.bottom);
-		text_part_title.setTextSize(text_rect.height()*.8f);
+		text_part_title.setTextSize(Math.max(text_rect.height()*.8f,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
 		
 		
 		Rect score_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.apart_score_cx),res.getDimension(R.dimen.apart_score_cy),
@@ -478,14 +540,22 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		switch(action_code){
 		
 			case Server_Name_Success:
-				if((Integer)params.get((byte)1)==1){
+				int res_status=(Integer)params.get((byte)1);
+				if(res_status==1){
 					Log.i("STLog","Send Name Success");
 //					updateGameState(GameState.SetHouse);
 					next_state=GameState.SetHouse;
 					goNextState();
+				}else if(res_status==2){
+					Message msg=Message.obtain(main_activity.handler,100,500,0,null);
+			        main_activity.handler.sendMessage(msg);				
+				}else{
+					Message msg=Message.obtain(main_activity.handler,100,999,0,null);
+			        main_activity.handler.sendMessage(msg);
 				}
 				break;
 			case Server_GG:
+			case Server_Leave_Success:
 				Log.i("STLog","Game A End");
 				if(game_state==GameState.SetTrigger) updateGameState(GameState.GameA_End);
 				else{ // if not finish,jump to main
@@ -498,11 +568,17 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 					updateGameState(GameState.SetName);
 					main_activity.setSideIndex((Integer)params.get((byte)101));
 					iland_view.setSide((Integer)params.get((byte)101));
+				}else{
+					Message msg=Message.obtain(main_activity.handler,100,999,0,null);
+			        main_activity.handler.sendMessage(msg);
 				}
 				break;
 			case Server_House_Success:
 				if((Integer)params.get((byte)1)==1){
 					updateGameState(GameState.SetTrigger);
+				}else{
+					Message msg=Message.obtain(main_activity.handler,100,999,0,null);
+			        main_activity.handler.sendMessage(msg);
 				}	
 				break;
 			default:
@@ -578,8 +654,12 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		img_back.setVisibility(View.VISIBLE);
 		iland_view.setVisibility(View.VISIBLE);
 		
+		
+		
 		switch(set_state){
 			case SetSide:
+				guide_view.setVisibility(View.VISIBLE);
+				
 				btn_left.setVisibility(View.VISIBLE);
 				btn_right.setVisibility(View.VISIBLE);
 				break;
@@ -667,8 +747,16 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			case SetTrigger:
 				
 				hint_view.setVisibility(View.VISIBLE);
+				count_view.setVisibility(View.VISIBLE);
+				
+				notice_view.setVisibility(View.VISIBLE);
+//				notice_view.setText(getResources().getString(R.string.text_gamea_notice));
+				
 				iland_view.setIlandMode(IlandMode.FINAL);
 				startBlowSensor();
+				
+				count_view.start();
+				
 				break;
 				
 			case GameA_End:
@@ -816,7 +904,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		if(game_state!=GameState.SetTrigger) return;
 		if(lock_trigger) return;
-		
+		if(main_activity.icur_game!=0) return;
 		
     	
 		main_activity.sendEvent(ev_code,new HashMap<Object,Object>());
@@ -843,7 +931,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				lock_trigger=false;
 			}
     	};
-    	timer.schedule(task, 1000);
+    	timer.schedule(task, 3000);
     	
 	}
 	

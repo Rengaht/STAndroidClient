@@ -36,6 +36,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import de.exitgames.client.photon.TypedHashMap;
 
@@ -99,6 +100,8 @@ public class GameCView extends BaseGameView{
 		
 		LayoutInflater inflater=(LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		inflater.inflate(R.layout.game_c_layout,this,true);
+		
+		
 //		inflate(getContext(), R.layout.game_c_layout, this);
 		
 		img_back=(ImageView)getChildAt(0);
@@ -134,7 +137,8 @@ public class GameCView extends BaseGameView{
 		//send_button=(Button)getChildAt(0);
 		//game_over_view=(ImageView)getChildAt(1);
 		
-		
+		guide_view=(TextView)getChildAt(16);
+		setupGuideText();
 		
 		
 		
@@ -315,6 +319,8 @@ public class GameCView extends BaseGameView{
 		
 		img_back.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		
+		guide_view.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
+		guide_view.setTextSize(Math.max(full_rect.width()/12,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
 		
 		//Log.i("STLayout","claim");
 		Rect claim_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.claim_cx),res.getDimension(R.dimen.claim_cy),
@@ -419,6 +425,8 @@ public class GameCView extends BaseGameView{
 		
 		switch(game_state){
 			case Claim:
+				guide_view.setVisibility(View.VISIBLE);
+				
 				img_page1.setVisibility(View.VISIBLE);
 				button_agree.setVisibility(View.VISIBLE);
 				button_disagree.setVisibility(View.VISIBLE);

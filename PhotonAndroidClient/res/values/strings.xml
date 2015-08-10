@@ -42,6 +42,20 @@
         <item>汙水處理器</item>               
     </string-array>
     
+    <string name="text_gamea_notice">
+        恭喜！你的自製節能屋已在大螢幕上完成！現在就跟著手機上的操作指示，跟著大螢幕互動，累積你的節能分數吧！
+    </string>
+    
+    <string name="text_guide_a">
+        請跟著指示依序選擇環保節能建材，打造自己專屬的節能屋！偷偷告訴你，綠建材愈環保，分數就愈高喔！
+    </string>
+    <string name="text_guide_c">
+        請跟著指示將自己的頭像上傳，然後你會發現自己出現在大螢幕上遊樂唷～整點時，還會跑出來報時呢！
+    </string>
+    <string name="text_guide_b">
+        請依照手機/平板上的方向盤顏色對應車子顏色，當車子前進時，路上會出現許多種類的能源，你能發現他們其中的差異嗎？多多使用再生能源，友善愛地球。
+    </string>
+    
     
      
 </resources>

@@ -71,4 +71,15 @@
     <dimen name="apart_score_width">30px</dimen>
     <dimen name="apart_score_height">5.73px</dimen>
     
+    <dimen name="acount_cx">90px</dimen>
+    <dimen name="acount_cy">13.85px</dimen>
+    <dimen name="acount_width">18.520px</dimen>
+    <dimen name="acount_height">10.42px</dimen>
+    
+    <dimen name="anotice_cx">50px</dimen>
+    <dimen name="anotice_cy">50px</dimen>
+    <dimen name="anotice_width">90.18px</dimen>
+    <dimen name="anotice_height">38.49px</dimen>
+    
+    
 </resources>

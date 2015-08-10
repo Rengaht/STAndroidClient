@@ -18,19 +18,30 @@ import java.util.TimerTask;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.Dialog;
+import android.app.Service;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaPlayer;
+import android.os.AsyncTask;
+import android.os.AsyncTask.Status;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.util.Base64;
@@ -41,14 +52,18 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 import de.exitgames.client.photon.TypedHashMap;
 
 public class MainActivity extends Activity implements SensorEventListener{
+	
+	
 	
 	final String LOG_TAG="STLog";
 	final String PARAM_FILE_NAME="stapp_params.json";
@@ -84,19 +99,31 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	long BEAT_RESOLUTION=100;
 	float BEAT_STRENGTH_THRESHOLD=3.0f;
-
+	
+	Vibrator mvibrator;
+	
 	
 	BaseGameView[] arr_game_view;
 	MainBackButton[] arr_game_button;
+	
+	ToggleButton toggle_sound;
+	boolean play_sound=true;
 	
 	
 	SoundPoolHelper mSoundPoolHelper;
 //	int sound_id_start,sound_id_button,sound_id_shutter,sound_id_finish,sound_id_alarm;
 	int[] arr_sound_id;
+	int stream_id_engine=-1;
+	
 	
 	AlertDialog.Builder mdialog_builder;
 	Dialog mdialog;
+	View dialog_view;
 	
+	
+//	BackgroundSound backsound = new BackgroundSound(R.raw.bgm_gaming);
+//	BackgroundSound enginesound = new BackgroundSound(R.raw.sound_bengine);
+
 	final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
     		super.handleMessage(msg);
@@ -114,11 +141,20 @@ public class MainActivity extends Activity implements SensorEventListener{
     				case 103: // send island trigger
     					sendEvent(GameEventCode.Game_A_Light,new HashMap<Object,Object>());
     					return;
+    				case 104:
+    					sendEvent(GameEventCode.Game_A_Leave,new HashMap<Object,Object>());
+    					return;
+    				case 120:
+    					setEngineSoundRate(2);
+    					return;
     				case 200: // time out
     					showUnavailable(200);
     					break;
     				case 500:
     					showUnavailable(500);
+    					return;
+    				case 999:
+    					showUnavailable(999);
     					return;
     			}
     			// go back to main view
@@ -219,7 +255,36 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
     };
  
-    
+    /* Bgm Service*/
+    private boolean mIsBound = false;
+    private BackMusicService mServ;
+    private ServiceConnection Scon =new ServiceConnection(){
+
+	        public void onServiceConnected(ComponentName name, IBinder binder){
+	        	mServ=((BackMusicService.ServiceBinder)binder).getService();
+	        }
+	
+	        public void onServiceDisconnected(ComponentName name) {
+		        mServ = null;
+	        }
+    };
+	private Timer timer_engine_rate;
+	private EngineRateTimerTask task_engine_rate;
+	
+	
+    void doBindService(){
+	    bindService(new Intent(this,BackMusicService.class),Scon,Context.BIND_AUTO_CREATE);
+	    mIsBound = true;
+    }
+
+    void doUnbindService(){
+	    if(mIsBound){
+		        unbindService(Scon);
+  		        mIsBound = false;
+	    }
+    }
+    /* End Bgm Service*/
+
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -299,20 +364,44 @@ public class MainActivity extends Activity implements SensorEventListener{
         params.height=(int)(size.x/2*.1724f);
         img_logo.setLayoutParams(params);
         
+        toggle_sound=(ToggleButton)findViewById(R.id.Button_Sound);
+		toggle_sound.setOnClickListener(new OnClickListener(){
+			@Override
+			public void onClick(View view){
+				if(toggle_sound.isChecked()){
+					play_sound=false;
+					stopBGM();
+					stopAllSoundEffect();
+				}
+				else{
+					play_sound=true;
+					startBGM();
+					if(icur_game==1 && ((GameBView)arr_game_view[1]).isEngine()) startEngineSound();
+				}
+
+			}
+			
+		});
+		FrameLayout.LayoutParams params2=(FrameLayout.LayoutParams)toggle_sound.getLayoutParams();
+		params2.width=(int)(params.height*.8f);
+		params2.height=(int)(params.height*.8f);
+//        params2.leftMargin=size.x-params.height;
+//        params2.topMargin=(int)(params.height*.2f);
+		
         
+       
+		
         initMainView();
         
-        arr_sound_id=new int[14];
-        mSoundPoolHelper=new SoundPoolHelper(1, this);
+        arr_sound_id=new int[18];
+        mSoundPoolHelper=new SoundPoolHelper(5, this);
         arr_sound_id[0]=mSoundPoolHelper.load(this,R.raw.sound_start,1);
         arr_sound_id[1]=mSoundPoolHelper.load(this,R.raw.sound_button,1);
         arr_sound_id[2]=mSoundPoolHelper.load(this, R.raw.sound_shutter,1);
         arr_sound_id[3]=mSoundPoolHelper.load(this, R.raw.sound_finish,1);
-        arr_sound_id[4]=mSoundPoolHelper.load(this,R.raw.sound_car_start,1);
-        arr_sound_id[5]=mSoundPoolHelper.load(this,R.raw.sound_car_end,1);
-        arr_sound_id[6]=mSoundPoolHelper.load(this,R.raw.sound_beep,1);
+        
         arr_sound_id[7]=mSoundPoolHelper.load(this,R.raw.sound_ascore,1);
-        arr_sound_id[8]=mSoundPoolHelper.load(this,R.raw.sound_afinish,1);
+//        arr_sound_id[8]=mSoundPoolHelper.load(this,R.raw.sound_afinish,1);
         arr_sound_id[9]=mSoundPoolHelper.load(this,R.raw.sound_button_short,1);
         
         arr_sound_id[10]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_1,1);
@@ -320,21 +409,93 @@ public class MainActivity extends Activity implements SensorEventListener{
         arr_sound_id[12]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_3,1);
         arr_sound_id[13]=mSoundPoolHelper.load(this,R.raw.sound_atrigger_4,1);
         
-        mSoundPoolHelper.setLoop(arr_sound_id[6],-1);
+        arr_sound_id[4]=mSoundPoolHelper.load(this,R.raw.sound_car_start,2);
+        arr_sound_id[5]=mSoundPoolHelper.load(this,R.raw.sound_car_end,2);
+        arr_sound_id[14]=mSoundPoolHelper.load(this,R.raw.sound_bbump,2);
+        arr_sound_id[15]=mSoundPoolHelper.load(this,R.raw.sound_bpickup,2);
+        arr_sound_id[6]=mSoundPoolHelper.load(this,R.raw.sound_bready,2);
         
+        arr_sound_id[16]=mSoundPoolHelper.load(this,R.raw.sound_bengine_loop_low,1);
+//        arr_sound_id[17]=mSoundPoolHelper.load(this,R.raw.bgm_gaming,3);
+        
+        mSoundPoolHelper.setLoop(arr_sound_id[6],-1);
+//        mSoundPoolHelper.setLoop(arr_sound_id[16],-1);
+//        mSoundPoolHelper.setLoop(arr_sound_id[17],-1);
         
         
         // alert dialog
-        mdialog=new Dialog(this,R.style.Theme_Dialog);
-		mdialog.setContentView(R.layout.message_dialog_layout);
-		mdialog.setCanceledOnTouchOutside(true);
-		Window window = mdialog.getWindow();
-		window.setLayout(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		window.setGravity(Gravity.CENTER);
-		
         
+      dialog_view=this.getLayoutInflater().inflate(R.layout.message_dialog_layout,null);
+//        mdialog=new Dialog(this,R.style.Theme_Dialog);
+//		mdialog.setContentView(R.layout.message_dialog_layout);
+//		mdialog.setCanceledOnTouchOutside(true);
+//		Window window = mdialog.getWindow();
+//		window.setLayout(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+//		window.setGravity(Gravity.CENTER);
+		
+		mvibrator=(Vibrator)getApplication().getSystemService(Service.VIBRATOR_SERVICE);
+		
+//		startBGM();
+		
+		
+		/* setup bgm */
+		doBindService();
+		Intent music = new Intent();
+		music.setClass(this,BackMusicService.class);
+		startService(music);
+		
     }
     
+    private void startBGM(){
+    	if(mServ!=null) mServ.resumeMusic();
+
+    }
+    private void stopBGM(){
+//    	backsound.cancel(true);   
+    	
+    	if(mServ!=null)  mServ.pauseMusic();
+    }
+    
+    public void startEngineSound(){
+//    	if(!play_sound) return;
+//    	
+//    	stopBGM();
+//    	if(!(enginesound.getStatus()==Status.RUNNING)){
+//    		enginesound=new BackgroundSound(R.raw.sound_bengine);
+//    		enginesound.execute();
+//    	}
+    	playSound(16);
+    	
+    }
+    public void stopAllSoundEffect(){
+//    	enginesound.cancel(true);
+//    	if(play_sound) startBGM();
+    	
+    	mSoundPoolHelper.autoPause();
+    	
+    }
+    public void stopEngineSound(){
+    	mSoundPoolHelper.stop(stream_id_engine);
+    }
+    
+    private void setEngineSoundRate(float set_rate){
+    	
+    	mSoundPoolHelper.setRate(stream_id_engine, set_rate);
+    	
+    	if(set_rate!=1){
+    		if(timer_engine_rate!=null){
+    			timer_engine_rate.cancel();
+    			task_engine_rate.cancel();
+    		}
+    		
+    		timer_engine_rate=new Timer(true);
+    		task_engine_rate=new EngineRateTimerTask();
+    		timer_engine_rate.schedule(task_engine_rate,800);
+    	}
+    }
+    
+	
+	
     public void playButtonSound(){
     	playSound(1);
     }
@@ -345,8 +506,16 @@ public class MainActivity extends Activity implements SensorEventListener{
     
 
     public void playSound(int isound){
-        mSoundPoolHelper.play(arr_sound_id[isound]);
+    	
+    	if(!play_sound) return;
+    	
+        if(isound!=16) mSoundPoolHelper.play(arr_sound_id[isound],1.0f,1.0f,1,0,1.0f);
+        else stream_id_engine=mSoundPoolHelper.play(arr_sound_id[isound],1.0f,1.0f,1,-1,1.0f);
+        
+        if(isound==14 || isound==15) mvibrator.vibrate(100);
     }
+    
+  
     
     public void Reconnect(){
     	
@@ -403,7 +572,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     
     private void setupGameButton(int igame){
     	
-    	if(mdialog.isShowing()) mdialog.dismiss();
+    	if(mdialog!=null && mdialog.isShowing()) mdialog.dismiss();
     	
 		icur_game=igame;
 		
@@ -435,7 +604,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     	if(game_index==1) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     	else setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     	
-    	
+    	stream_id_engine=-1;
     }
     private void initMainView(){
     	for(MainBackButton game_button:arr_game_button){ 
@@ -451,7 +620,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 
 	private void showUnavailable(int istatus){
 		
-		if(mdialog!=null && mdialog.isShowing()) return;
+//		if(mdialog!=null && mdialog.isShowing())  mdialog.dismiss();
+		
 		String text_show="";
 		switch(istatus){
 			case 0:
@@ -465,13 +635,44 @@ public class MainActivity extends Activity implements SensorEventListener{
 				text_show="時間到";
 				break;				
 			case 500:
-				text_show="沒有名字";
+				text_show="你可以取更好的名字";
+				break;
+			case 999:
+				text_show="發生問題";
 				break;
 		}
-		TextView _text=(TextView)mdialog.findViewById(R.id.text_message);
+//		Builder alert_builder=new AlertDialog.Builder(MainActivity.this);
+//		alert_builder.setMessage(text_show);
+//		alert_builder.create().show();
+//		alert_builder.setView(dialog_view);
+//		
+//		TextView _text=(TextView)dialog_view.findViewById(R.id.text_message);
+//		_text.setText(text_show);
+		
+//		alert_builder.create();
+//		mdialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+		
+//		mdialog=alert_builder.show();
+		
+		
+		final Dialog dialog=new Dialog(MainActivity.this);
+		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		dialog.setContentView(R.layout.message_dialog_layout);
+		dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0xCC000000));
+		
+		Point size = new Point();
+        this.getWindowManager().getDefaultDisplay().getSize(size);
+		WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
+		params.width=(int)(size.x*.75f);
+		params.height=(int)(size.x*.25f);
+		dialog.getWindow().setAttributes(params);
+		
+		TextView _text=(TextView)dialog.findViewById(R.id.text_message);
 		_text.setText(text_show);
 		
-		mdialog.show();
+		
+		dialog.show();
+		
 	}
     
     // EndRegion
@@ -683,6 +884,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onPause() {
 	    super.onPause();  
 	    
+	    stopBGM();
+	    stopAllSoundEffect();
+	    
 	    Log.i("STLog","---- PAUSE ----");
 	     //TODO: save tmp data
 	    if(icur_game>-1) arr_game_view[icur_game].End();
@@ -694,6 +898,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	public void onResume() {
 	    super.onResume();  
 	    
+	    if(play_sound) startBGM();
+	    
 	    Log.i("STLog","---- RESUME ----");
 	    
 	    // TODO: recover tmp-saved data
@@ -704,5 +910,58 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    sendCheckIdEvent();
 	    //setupGameButton(icur_game);
 	}
+	
+	@Override
+	public void onDestroy(){
+	    super.onDestroy();  
+	    
+	    doUnbindService();
+	    
+	}
+	
+	public class BackgroundSound extends AsyncTask<Void, Void, Void> {
+
+		
+	
+
+		int sound_id;
+		
+		BackgroundSound(int set_id){
+			super();
+			sound_id=set_id;
+		}
+		
+	    @Override
+	    protected Void doInBackground(Void... params) {
+	        MediaPlayer player = MediaPlayer.create(MainActivity.this, sound_id); 
+	        player.setLooping(true); // Set looping 
+	        player.setVolume(50,50); 
+	        player.start(); 
+	        
+	        while(!isCancelled()){
+	        	try{
+	                //do something
+	                Log.i(LOG_TAG, "Sleeping...");
+	                Thread.sleep(500);
+	            }catch(InterruptedException e){
+	                Log.i(LOG_TAG, "Task was inturrupted");
+	                player.stop();
+	            }catch(Exception e){
+	                Log.e(LOG_TAG, e.toString(), e);
+	            }   
+	        }
+	        
+	        return null;
+	    }
+
+	}
+
+	private class EngineRateTimerTask extends TimerTask{
+		@Override
+		public void run(){
+			setEngineSoundRate(1);
+		}
+	}
+
 	
 }

@@ -13,7 +13,7 @@ public enum GameEventCode{
 	Game_A_Blow(63),
 	Game_A_Light(64),
 	Game_A_Shake(65),
-	
+	Game_A_Leave(66),
 	
 	Game_B_Rotate(71),
 	
@@ -29,10 +29,11 @@ public enum GameEventCode{
 	Server_Set_Side_Success(160),
 	Server_Name_Success(161),
 	Server_House_Success(162),
-	
+	Server_Leave_Success(163),
 	
 	Server_GameB_Ready(171),
 	Server_GameB_Start(172),
+	Server_GameB_Eat(173),
 	
 	Server_Face_Success(181),
 	
@@ -65,6 +66,8 @@ public enum GameEventCode{
 				return Game_A_Light;
 			case 65:
 				return Game_A_Shake;
+			case 66:
+				return Game_A_Leave;
 			
 			case 71:
 				return Game_B_Rotate;
@@ -87,12 +90,16 @@ public enum GameEventCode{
 				return Server_Name_Success;
 			case 162:
 				return Server_House_Success;
+			case 163:
+				return Server_Leave_Success;
 				
 			case 171:
 				return Server_GameB_Ready;
 			case 172:
 				return Server_GameB_Start;
-			
+			case 173:
+				return Server_GameB_Eat;
+				
 			case 181:
 				return Server_Face_Success;
 			

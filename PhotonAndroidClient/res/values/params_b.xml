@@ -33,8 +33,13 @@
     
     
     <dimen name="wait_cx">50px</dimen>
-    <dimen name="wait_cy">50px</dimen>
+    <dimen name="wait_cy">40px</dimen>
     <dimen name="wait_width">55.10px</dimen>
     <dimen name="wait_height">32.5px</dimen>
+    
+    <dimen name="bwaitcount_cx">50px</dimen>
+    <dimen name="bwaitcount_cy">60px</dimen>
+    <dimen name="bwaitcount_width">14.89px</dimen>
+    <dimen name="bwaitcount_height">14.72px</dimen>
     
 </resources>

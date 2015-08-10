@@ -53,7 +53,7 @@ public class BlowSensor {
 	 private double getAmpEMA(){
 		 double amp=getAmp();
 		 mEMA=EMA_FILTER*amp+(1.0-EMA_FILTER)*mEMA;
-//		 Log.i("STLog","mEMA= "+mEMA);
+		 Log.i("Sensor","mEMA= "+mEMA);
          return mEMA;
 	 }
 	 

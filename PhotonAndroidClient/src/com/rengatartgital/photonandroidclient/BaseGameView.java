@@ -10,11 +10,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public abstract class BaseGameView extends FrameLayout{
 	
 	MainActivity main_activity;
-	public ImageView game_over_view;
+	
+	protected TextView guide_view; 
+	private String guide_string;
+	protected boolean read_guide;
 	
 	public BaseGameView(Context context){
 		super(context);
@@ -52,15 +56,51 @@ public abstract class BaseGameView extends FrameLayout{
 		 }
 	}
 	public void Init(){
-		if(game_over_view!=null) game_over_view.setVisibility(View.INVISIBLE);
+//		if(guide_view==null){
+//			guide_view=new TextView(getContext());
+//			if(guide_string!=null) guide_view.setText(guide_string);
+//			guide_view.setTextColor(0xFFFFFFFF);
+//			guide_view.setBackgroundColor(0xAA000000);
+//			guide_view.setTextSize(Math.min(getWidth()/12,getResources().getDimension(R.dimen.MIN_TEXT_SIZE)));
+//			guide_view.setOnClickListener(new OnClickListener(){
+//				@Override
+//				public void onClick(View arg0){
+//					guide_view.setVisibility(View.INVISIBLE);
+//				}
+//			});
+//			this.addView(guide_view);
+//			FrameLayout.LayoutParams params=new FrameLayout.LayoutParams(getWidth(),getHeight());
+//			guide_view.setLayoutParams(params);
+//						
+//		}
+		guide_view.setVisibility(View.VISIBLE);
+		read_guide=false;
+		
 	}
 	public void End(){
-		if(game_over_view!=null) game_over_view.setVisibility(View.VISIBLE);
+	
 	}
 	abstract public void HandleMessage(GameEventCode action_code,TypedHashMap<Byte,Object> params);
 	abstract public void HandleSensor(float[] sensor_value);
 	
 	abstract public boolean isFinish();
+	
+	public void setupGuideText(){
+		
+		if(guide_view!=null){
+			
+			guide_view.setOnClickListener(new OnClickListener(){
+
+				@Override
+				public void onClick(View arg0) {
+					guide_view.setVisibility(View.INVISIBLE);
+					read_guide=true;
+				}
+				
+			});
+		}
+	}
+	
 	
 //	Rect getLayoutCoordinate(int pleft,int ptop,int pright,int pbottom){
 //		

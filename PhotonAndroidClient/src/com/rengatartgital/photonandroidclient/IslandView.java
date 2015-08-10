@@ -11,6 +11,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -54,6 +55,7 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	
 	private boolean is_changing=false;
 	
+	Typeface typeface_name;
 	
 	public IslandView(Context context){
 		super(context);
@@ -72,20 +74,23 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	
 	void setup(){
 		
+		typeface_name=Typeface.createFromAsset(this.getContext().getAssets(),"fonts/combined.otf");
+
+		
 		paint_bmp=new Paint();
 		paint_uppest=new Paint();
 		
 		paint_text=new Paint();
 		paint_text.setARGB(255,5,103,177);
 		paint_text.setAntiAlias(true);
-		
+		paint_text.setTypeface(typeface_name);
 		
 		paint_stroke= new Paint();
 		paint_stroke.setStyle(Style.STROKE);
 		paint_stroke.setStrokeWidth(5);
 		paint_stroke.setColor(Color.WHITE);
 		paint_stroke.setAntiAlias(true);
-		
+		paint_stroke.setTypeface(typeface_name);
 		
 		arr_ipart=new int[MPART];
 		arr_bmp_part=new Bitmap[MPART];
@@ -102,6 +107,9 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		anima_part_out.setDuration(300);
 	
 		bmp_dest_part=null;
+		
+		
+		
 		
 	}
 	

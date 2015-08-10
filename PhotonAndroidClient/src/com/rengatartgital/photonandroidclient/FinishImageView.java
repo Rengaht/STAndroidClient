@@ -39,9 +39,12 @@ import android.widget.ImageView;
 
 public class FinishImageView extends ImageView implements AnimatorUpdateListener{
 	
+	
+	final int min_date_size=32;
+	
 	private Bitmap front_bmp;
 	private Bitmap back_bmp;
-	
+	private Bitmap icon_bmp;
 	private Bitmap notice_bmp;
 	
 	private ValueAnimator fadein_animator,fadeout_animator;
@@ -59,6 +62,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	boolean save_finish;
 	
 	int index_game;
+	
+	
 	
 	public FinishImageView(Context context){
 		super(context);
@@ -84,20 +89,23 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		
 		switch(igame){
 			case 0:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamea_end_bg);
+				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamea_end_bg_3);
 				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
 				break;
 			case 1:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg);
+				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg_3);
 				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
 				break;
 			case 2:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg);
+				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg_3);
 				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_notice);
 				break;
 		}
 		
 		back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
+		
+		icon_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.home_logo);
+		icon_bmp=Bitmap.createScaledBitmap(icon_bmp,(int)(cur_width*.445f*.8f),(int)(cur_width*.081f*.8f),true);
 		
 		
 		notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
@@ -106,7 +114,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		mpaint=new Paint();
 		mstroke_paint=new Paint();
 		mstroke_paint.setColor(Color.RED);
-		mstroke_paint.setTextSize(cur_height/20);
+		mstroke_paint.setTextSize(min_date_size);
 		mstroke_paint.setTextAlign(Align.RIGHT);
 		mstroke_paint.setAntiAlias(true);
 		mstroke_paint.setStyle(Style.STROKE);
@@ -114,7 +122,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		
 		mfill_paint=new Paint();
 		mfill_paint.setColor(Color.YELLOW);
-		mfill_paint.setTextSize(cur_height/20);
+		mfill_paint.setTextSize(min_date_size);
 		mfill_paint.setTextAlign(Align.RIGHT);
 		mfill_paint.setAntiAlias(true);
 		mfill_paint.setStyle(Style.FILL);
@@ -170,7 +178,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         
         fadeout_animator = ValueAnimator.ofFloat(255,0);
 		fadeout_animator.setDuration(200);
-		fadeout_animator.setStartDelay(2500);
+		fadeout_animator.setStartDelay(2000);
         fadeout_animator.setInterpolator(new AccelerateDecelerateInterpolator());
         fadeout_animator.addUpdateListener(this);
         
@@ -199,8 +207,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		if(front_bmp!=null && !front_bmp.isRecycled()){
 			canvas.save();
 			
-			if(index_game==2) canvas.translate(cur_width/2,(int)(cur_height*.35));
-			else if(index_game==1) canvas.translate(cur_width/1.9f,(int)(cur_height*.35));
+			if(index_game==2) canvas.translate(cur_width*.47f,(int)(cur_height*.38));
+			else if(index_game==1) canvas.translate(cur_width*.53f,(int)(cur_height*.42f));
 			else canvas.translate(cur_width/2,(int)(cur_height*.28));
 			
 			
@@ -209,7 +217,19 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 			canvas.restore();
 		}
 		
+		/* draw icon*/
+		int marg=(int)(cur_width*.02);
+		canvas.save();
+		canvas.translate(marg,(int)(cur_height*0.59+marg));
+			canvas.drawBitmap(icon_bmp,0,0,mpaint);
+		canvas.restore();
+		
+		
 		if(date_str!=null){
+			float text_size=Math.min(cur_width, cur_height)/15;
+			if(mstroke_paint!=null) mstroke_paint.setTextSize(Math.max(min_date_size,text_size));
+			if(mfill_paint!=null) mfill_paint.setTextSize(Math.max(min_date_size,text_size));
+			
 			canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mstroke_paint);
 			canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mfill_paint);
 		}
@@ -223,7 +243,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		super.onLayout(changed,l,t,r,b);
 		cur_width=getWidth();
 		cur_height=getHeight();
-				
+		
+	
 	}
 	
 	

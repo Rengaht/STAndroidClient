@@ -104,6 +104,18 @@
 	    android:layout_height="wrap_content"
 	    android:visibility="invisible"
 	    />
+	<com.rengatartgital.photonandroidclient.ACountDownView 
+   	    android:id="@+id/Count_Down"
+   	    android:layout_width="wrap_content"
+   	    android:layout_height="wrap_content"  	 
+   	   />
+	<ImageView
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:src="@drawable/gamea_notice"
+   	    
+	    />
+	
 	<com.rengatartgital.photonandroidclient.FinishImageView
 	    android:id="@+id/finish_img"
 	    android:layout_width="fill_parent"
@@ -118,4 +130,13 @@
 	    android:visibility="invisible"
 	    />
 	
+	<TextView
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:text="@string/text_guide_a"
+	    android:gravity="center"
+	    android:background="#CC000000"
+	    android:textColor="#ffffff"
+	    android:padding="20dp"
+	    />
 </merge>

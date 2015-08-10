@@ -1,6 +1,8 @@
 package com.rengatartgital.photonandroidclient;
 
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.rengatartgital.photonandroidclient.R;
 
@@ -14,6 +16,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -39,6 +42,8 @@ public class GameBView extends BaseGameView {
 		
 	FinishImageView img_finish;
 	Button button_home;
+	BCountDownView countdown_view;
+	
 	
 	private ValueAnimator winlose_animator;
 	
@@ -48,7 +53,9 @@ public class GameBView extends BaseGameView {
 	private int last_win;
 	
 	private int last_wheel_pos;
+	private Timer timer_engine_rate;
 	
+	private Handler main_handle;
 	
 	public GameBView(Context context) {
 		super(context);
@@ -72,13 +79,17 @@ public class GameBView extends BaseGameView {
 		wheel_view=(WheelView)getChildAt(1);
 		
 		img_wait=(ImageView)getChildAt(2);
+		countdown_view=(BCountDownView)getChildAt(3);
 		
-		img_start=(ImageView)getChildAt(3);
+		img_start=(ImageView)getChildAt(4);
 		
-		img_win=(ImageView)getChildAt(4);
-		img_lose=(ImageView)getChildAt(5);
-		img_finish=(FinishImageView)getChildAt(6);
-		button_home=(Button)getChildAt(7);
+		img_win=(ImageView)getChildAt(5);
+		img_lose=(ImageView)getChildAt(6);
+		img_finish=(FinishImageView)getChildAt(7);
+		button_home=(Button)getChildAt(8);
+		
+		guide_view=(TextView)getChildAt(9);
+		setupGuideText();
 		
 		button_home.setOnClickListener(new OnClickListener(){
 			@Override
@@ -127,6 +138,12 @@ public class GameBView extends BaseGameView {
         blink_animation=AnimationUtils.loadAnimation(this.getContext(),R.anim.blink_ani);
         
 	}
+	@Override public void setMainActivity(MainActivity main_act){
+		super.setMainActivity(main_act);
+		main_handle=main_act.handler;
+	}
+	
+	
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b){
 		
@@ -147,10 +164,20 @@ public class GameBView extends BaseGameView {
 //		wheel_view.layout(wheel_rect.left,wheel_rect.top,wheel_rect.right,wheel_rect.bottom);
 		wheel_view.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		
+		guide_view.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
+		guide_view.setTextSize(Math.max(full_rect.height()/12,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
+		
+		
 		Rect wait_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.wait_cx),res.getDimension(R.dimen.wait_cy),
 				res.getDimension(R.dimen.wait_width),res.getDimension(R.dimen.wait_height));
 		img_wait.layout(wait_rect.left,wait_rect.top,wait_rect.right,wait_rect.bottom);
 		img_start.layout(wait_rect.left,wait_rect.top,wait_rect.right,wait_rect.bottom);
+		
+		
+		Rect waitcount_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.bwaitcount_cx),res.getDimension(R.dimen.bwaitcount_cy),
+				res.getDimension(R.dimen.bwaitcount_width),res.getDimension(R.dimen.bwaitcount_height));
+		countdown_view.layout(waitcount_rect.left,waitcount_rect.top,waitcount_rect.right,waitcount_rect.bottom);
+		countdown_view.setupBitmap(waitcount_rect.left,waitcount_rect.top,waitcount_rect.right,waitcount_rect.bottom);
 		
 		Rect win_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.win_cx),res.getDimension(R.dimen.win_cy),
 				res.getDimension(R.dimen.win_width),res.getDimension(R.dimen.win_height));
@@ -183,7 +210,7 @@ public class GameBView extends BaseGameView {
 		main_activity.handler.sendMessage(msg);
 		
 		
-		Bitmap car_bmp=createCarBitmap(last_car_index,(int)(this.getWidth()*.7),(int)(this.getWidth()*.7));
+		Bitmap car_bmp=createCarBitmap(last_car_index,(int)(this.getWidth()*.8),(int)(this.getWidth()*.8));
 		img_finish.setup(1,car_bmp,main_activity.handler);
 		img_finish.setVisibility(View.VISIBLE);
 		
@@ -209,6 +236,12 @@ public class GameBView extends BaseGameView {
 			case Server_GameB_Start:
 				updateGameState(GameState.Rotate);
 				break;
+			case Server_GameB_Eat:
+				int eat_type=(Integer)params.get((byte)1);
+				if(eat_type==1) main_activity.playSound(15);
+				else if(eat_type==2) main_activity.playSound(14);
+					
+				break;
 			case Server_GG:
 				
 				last_car_index=(Integer)params.get((byte)3);
@@ -230,12 +263,18 @@ public class GameBView extends BaseGameView {
 		int mchild=this.getChildCount();
 		for(int i=0;i<mchild;++i) this.getChildAt(i).setVisibility(View.INVISIBLE);
 		
-	
+		if(!read_guide) guide_view.setVisibility(View.VISIBLE);
 		
 		switch(game_state){
 			case GameB_Wait:
+			
+				
 				img_back.setVisibility(View.VISIBLE);
 				img_wait.setVisibility(View.VISIBLE);
+				countdown_view.setVisibility(View.VISIBLE);
+				
+				countdown_view.start();
+				
 				wheel_view.setVisibility(View.VISIBLE);
 				setWaitMode(true);
 //				main_activity.playSound(6);
@@ -253,6 +292,7 @@ public class GameBView extends BaseGameView {
 				break;
 			case Rotate:
 				this.main_activity.playSound(4);
+				this.main_activity.startEngineSound();
 				
 				img_back.setVisibility(View.VISIBLE);
 				img_start.clearAnimation();
@@ -264,6 +304,9 @@ public class GameBView extends BaseGameView {
 
 				break;
 			case Win_Lose:
+				
+				this.main_activity.stopEngineSound();
+				
 				img_back.setVisibility(View.VISIBLE);
 				setWaitMode(true);
 				wheel_view.setVisibility(View.VISIBLE);
@@ -332,6 +375,8 @@ public class GameBView extends BaseGameView {
 
 			
 			last_wheel_pos=new_wheel_pos;
+			
+			changeEngineSound();
 		}
 		
 		
@@ -343,6 +388,8 @@ public class GameBView extends BaseGameView {
 //			main_activity.sendEvent(GameEventCode.Game_B_Rotate,params);
 			
 			wheel_view.setRotateAngle((float)(-delta_strength/9.8*90));
+			
+			
 		}else{
 			wheel_view.setRotateAngle(0);
 		}
@@ -379,4 +426,16 @@ public class GameBView extends BaseGameView {
 	public boolean isFinish(){
 		return game_state==GameState.GameB_End;
 	}
+	public boolean isEngine(){
+		return game_state==GameState.Rotate;
+	}
+	
+	private void changeEngineSound(){
+		
+//		main_activity.setEngineSoundRate(5);
+		
+		Message msg=Message.obtain(main_handle,100,120,0,null);
+		main_handle.sendMessage(msg);
+	}
+	
 }
