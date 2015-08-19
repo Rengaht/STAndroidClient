@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.CGame;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -6,7 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import com.rengatartgital.photonandroidclient.GameEventCode;
 import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.dimen;
+import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.R.layout;
+import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
+import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
+import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
 
 import android.content.Context;
 import android.content.pm.PackageManager;

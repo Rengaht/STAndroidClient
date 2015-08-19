@@ -1,4 +1,7 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.AGame;
+
+import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.drawable;
 
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;

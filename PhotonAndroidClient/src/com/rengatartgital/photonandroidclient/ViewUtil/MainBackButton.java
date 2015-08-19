@@ -1,4 +1,8 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.ViewUtil;
+
+import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.R.styleable;
 
 import android.content.Context;
 import android.content.res.TypedArray;

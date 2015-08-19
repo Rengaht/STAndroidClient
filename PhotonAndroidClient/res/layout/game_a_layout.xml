@@ -9,7 +9,7 @@
        android:layout_height="match_parent"
        android:src="@drawable/gamea_ui_bg"
        />
-   <com.rengatartgital.photonandroidclient.IslandView
+   <com.rengatartgital.photonandroidclient.AGame.IslandView
         android:layout_width="match_parent"
        android:layout_height="match_parent"
        />
@@ -99,12 +99,12 @@
 	    android:background="@drawable/gamea_arrow_right"
 	    />
 	
-	<com.rengatartgital.photonandroidclient.ATriggerHintView
+	<com.rengatartgital.photonandroidclient.AGame.ATriggerHintView
 		android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    android:visibility="invisible"
 	    />
-	<com.rengatartgital.photonandroidclient.ACountDownView 
+	<com.rengatartgital.photonandroidclient.AGame.ACountDownView 
    	    android:id="@+id/Count_Down"
    	    android:layout_width="wrap_content"
    	    android:layout_height="wrap_content"  	 
@@ -116,7 +116,7 @@
    	    
 	    />
 	
-	<com.rengatartgital.photonandroidclient.FinishImageView
+	<com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView
 	    android:id="@+id/finish_img"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"

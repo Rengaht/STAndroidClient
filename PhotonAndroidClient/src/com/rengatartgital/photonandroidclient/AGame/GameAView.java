@@ -1,29 +1,19 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.AGame;
 
 import java.util.HashMap;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.rengatartgital.photonandroidclient.IslandView.IlandMode;
+import com.rengatartgital.photonandroidclient.AGame.IslandView.IlandMode;
+import com.rengatartgital.photonandroidclient.R.array;
+import com.rengatartgital.photonandroidclient.R.dimen;
+import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.R.layout;
+import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
+import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
+import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
+import com.rengatartgital.photonandroidclient.GameEventCode;
+import com.rengatartgital.photonandroidclient.MainActivity;
 import com.rengatartgital.photonandroidclient.R;
 
 import de.exitgames.client.photon.TypedHashMap;

@@ -1,5 +1,8 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.CGame;
 
+
+import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.drawable;
 
 import android.content.Context;
 import android.graphics.Bitmap;

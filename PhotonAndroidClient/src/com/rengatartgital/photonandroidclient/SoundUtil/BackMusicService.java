@@ -1,4 +1,7 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.SoundUtil;
+
+import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.raw;
 
 import android.app.Service;
 import android.content.Intent;
@@ -17,7 +20,7 @@ public class BackMusicService extends Service  implements MediaPlayer.OnErrorLis
     public BackMusicService() { }
 
     public class ServiceBinder extends Binder {
-     	 BackMusicService getService()
+     	 public BackMusicService getService()
     	 {
     		return BackMusicService.this;
     	 }

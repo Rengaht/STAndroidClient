@@ -1,5 +1,8 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.ViewUtil;
 
+
+import com.rengatartgital.photonandroidclient.GameEventCode;
+import com.rengatartgital.photonandroidclient.MainActivity;
 
 import de.exitgames.client.photon.TypedHashMap;
 import android.content.Context;
@@ -14,7 +17,7 @@ import android.widget.TextView;
 
 public abstract class BaseGameView extends FrameLayout{
 	
-	MainActivity main_activity;
+	public MainActivity main_activity;
 	
 	protected TextView guide_view; 
 	private String guide_string;

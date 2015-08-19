@@ -16,6 +16,14 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.rengatartgital.photonandroidclient.AGame.GameAView;
+import com.rengatartgital.photonandroidclient.BGame.GameBView;
+import com.rengatartgital.photonandroidclient.CGame.GameCView;
+import com.rengatartgital.photonandroidclient.SoundUtil.BackMusicService;
+import com.rengatartgital.photonandroidclient.SoundUtil.SoundPoolHelper;
+import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
+import com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
@@ -71,7 +79,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	private enum GameState {LogIn,Join};
 	GameState gstate;
-	int icur_game;
+	public int icur_game;
 	
 	Thread client_thread;
 	
@@ -82,7 +90,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	String client_id=null;
 	
-	Integer side_index=null; // Left or Right
+	public Integer side_index=null; // Left or Right
 
 	// For GameB
 	String waiting_stamp=null; 
@@ -124,7 +132,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 //	BackgroundSound backsound = new BackgroundSound(R.raw.bgm_gaming);
 //	BackgroundSound enginesound = new BackgroundSound(R.raw.sound_bengine);
 
-	final Handler handler=new Handler(){
+	public final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
     		super.handleMessage(msg);
     		
@@ -179,6 +187,8 @@ public class MainActivity extends Activity implements SensorEventListener{
     		}
     		switch(action_code){
 	    		case Server_Disconnected:
+	    			if(icur_game>-1 && arr_game_view[icur_game].isFinish()) break;
+	    			
 	    			initGame(-1);
 					Reconnect();
 					break;
@@ -300,15 +310,6 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         setContentView(R.layout.activity_main);
         
-//        back_img_view=(ImageView)findViewById(R.id.BackView);       
-//        Display display = getWindowManager().getDefaultDisplay(); 
-//		Point sizee=new Point(0,0);
-//		display.getSize(sizee);
-//		float hei=sizee.y;
-//		float scale_y=hei/1920.0f;
-//        Matrix back_matrix=new Matrix();
-//        back_matrix.setScale(scale_y,scale_y);
-//        back_img_view.setImageMatrix(back_matrix);
         
         readParameterFile();
         
@@ -426,7 +427,6 @@ public class MainActivity extends Activity implements SensorEventListener{
         // alert dialog
         
       dialog_view=this.getLayoutInflater().inflate(R.layout.message_dialog_layout,null);
-//        mdialog=new Dialog(this,R.style.Theme_Dialog);
 //		mdialog.setContentView(R.layout.message_dialog_layout);
 //		mdialog.setCanceledOnTouchOutside(true);
 //		Window window = mdialog.getWindow();
@@ -516,8 +516,20 @@ public class MainActivity extends Activity implements SensorEventListener{
     }
     
   
-    
     public void Reconnect(){
+        Reconnect(true);
+    }
+    public void Reconnect(boolean delay){
+    	
+//    	if(icur_game>-1 && arr_game_view[icur_game].isFinish()) return;
+    	
+    	if(!delay){
+    		
+    		ConnectServer();
+    		return;
+    	}
+    	
+    	
     	
     	hint_text.setText("Reconnect...");
     	Log.i("STConnect","Reconnect....");
@@ -552,6 +564,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 	}
 	
     public void sendCheckIdEvent(){
+    	
+    	
+    	if(!photon_client.is_connected) Reconnect(false);
+    	
     	HashMap<Object,Object> params=new HashMap<Object,Object>();
     	params.put((byte)100, client_id);
     	
@@ -559,7 +575,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     }
     
     
-	String getEncodedImage(byte[] abyte){
+	public String getEncodedImage(byte[] abyte){
 		String encode=Base64.encodeToString(abyte,Base64.DEFAULT);
 		Log.i("STLog","encoded string length= "+encode.length());
 		return encode;
@@ -750,25 +766,25 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	
 	
-	private byte[] openFile(){
-		
-		
-		try{
-			InputStream input=getAssets().open("Unihorse.png");
-			int input_size=input.available();
-			byte[] abyte=new byte[input_size];
-			BufferedInputStream buf=new BufferedInputStream(input);
-			buf.read(abyte,0,abyte.length);
-			buf.close();
-			
-			return abyte;
-			
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		return null;
-		
-	}
+//	private byte[] openFile(){
+//		
+//		
+//		try{
+//			InputStream input=getAssets().open("Unihorse.png");
+//			int input_size=input.available();
+//			byte[] abyte=new byte[input_size];
+//			BufferedInputStream buf=new BufferedInputStream(input);
+//			buf.read(abyte,0,abyte.length);
+//			buf.close();
+//			
+//			return abyte;
+//			
+//		}catch(IOException e){
+//			e.printStackTrace();
+//		}
+//		return null;
+//		
+//	}
 	
 	// Region - Save Image
 	

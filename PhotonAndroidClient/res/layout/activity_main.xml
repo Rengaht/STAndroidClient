@@ -27,7 +27,7 @@
 		<TableRow
 		    android:layout_weight="1"
         	android:gravity="center">
-			<com.rengatartgital.photonandroidclient.MainBackButton
+			<com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton
 			    android:id="@+id/Button_GameA"
 			    android:layout_width="fill_parent"
 			    android:layout_height="fill_parent"
@@ -38,7 +38,7 @@
 		<TableRow
 		    android:layout_weight="1"
         	android:gravity="center">
-			<com.rengatartgital.photonandroidclient.MainBackButton
+			<com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton
 			    android:id="@+id/Button_GameB"
 			    android:layout_width="fill_parent"
 			    android:layout_height="fill_parent"
@@ -49,7 +49,7 @@
 		<TableRow
 		     android:layout_weight="1"
         	android:gravity="center">
-			<com.rengatartgital.photonandroidclient.MainBackButton
+			<com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton
 			    android:id="@+id/Button_GameC"
 			    android:layout_width="fill_parent"
 			    android:layout_height="fill_parent"
@@ -59,19 +59,19 @@
 		</TableRow>
 	</TableLayout>
 
-	<com.rengatartgital.photonandroidclient.GameAView
+	<com.rengatartgital.photonandroidclient.AGame.GameAView
 	    android:id="@+id/GameA"
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
 	    android:visibility="invisible" />
 
-    <com.rengatartgital.photonandroidclient.GameBView
+    <com.rengatartgital.photonandroidclient.BGame.GameBView
         android:id="@+id/GameB"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:visibility="invisible" />
 
-   	<com.rengatartgital.photonandroidclient.GameCView
+   	<com.rengatartgital.photonandroidclient.CGame.GameCView
    	    android:id="@+id/GameC"
    	    android:layout_width="fill_parent"
    	    android:layout_height="fill_parent"

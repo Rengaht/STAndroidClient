@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.CGame;
 
 import java.io.IOException;
 

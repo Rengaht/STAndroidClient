@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.AGame;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;

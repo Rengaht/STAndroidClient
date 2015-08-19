@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.ViewUtil;
 
 import android.graphics.Rect;
 import android.util.Log;

@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.BGame;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;

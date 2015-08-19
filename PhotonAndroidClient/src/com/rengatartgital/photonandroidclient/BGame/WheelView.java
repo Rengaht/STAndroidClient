@@ -1,6 +1,9 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.BGame;
 
 import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.dimen;
+import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
 
 import android.content.Context;
 import android.content.res.Resources;

@@ -12,7 +12,7 @@
 	    />
 	
     
-	<com.rengatartgital.photonandroidclient.WheelView
+	<com.rengatartgital.photonandroidclient.BGame.WheelView
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
 	/>
@@ -23,7 +23,7 @@
 	    android:src="@drawable/gameb_wait"
 	    android:visibility="invisible"
 	/>
-	<com.rengatartgital.photonandroidclient.BCountDownView 
+	<com.rengatartgital.photonandroidclient.BGame.BCountDownView 
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    />
@@ -51,7 +51,7 @@
 	 />
 	
 	
-	<com.rengatartgital.photonandroidclient.FinishImageView
+	<com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView
     android:id="@+id/finish_img"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"

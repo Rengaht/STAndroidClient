@@ -23,8 +23,8 @@ import de.exitgames.client.photon.enums.ConnectionProtocol;
 public class PhotonClient extends LoadBalancingClient implements Runnable{
 	
 	static final String LOG_TAG="STConnect";
-	static final String SERVER_IP="kerkerker.artgital.com:5055";
-//	static final String SERVER_IP="192.168.2.227:5055";
+//	static final String SERVER_IP="kerkerker.artgital.com:5055";
+	static final String SERVER_IP="192.168.2.227:5055";
 	static final String SERVER_APP="STPhotonServer";
 	
     Handler main_handler;

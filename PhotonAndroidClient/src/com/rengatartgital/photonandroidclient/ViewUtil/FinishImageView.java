@@ -1,4 +1,4 @@
-package com.rengatartgital.photonandroidclient;
+package com.rengatartgital.photonandroidclient.ViewUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,6 +11,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.R.drawable;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;

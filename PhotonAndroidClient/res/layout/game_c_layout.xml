@@ -41,7 +41,7 @@
     android:visibility="invisible"
     />   
 
-<com.rengatartgital.photonandroidclient.ScaleSeekBar
+<com.rengatartgital.photonandroidclient.CGame.ScaleSeekBar
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:visibility="invisible"
@@ -65,7 +65,7 @@
     />
 
 
-<com.rengatartgital.photonandroidclient.FinishImageView
+<com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView
     android:id="@+id/finish_img"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
