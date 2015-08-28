@@ -164,8 +164,8 @@ public class GameBView extends BaseGameView {
 		Rect full_rect=LayoutHelper.getLandscapeLayoutCoordinate(l,t,r,b);	
 		if(img_finish.getVisibility()==View.VISIBLE) full_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b);
 		
-		Log.i("STLayout","gameb: "+l+" "+t+" "+r+" "+b);
-		Log.i("STLayout","gameb full "+full_rect.left+" "+full_rect.top+" "+full_rect.right+" "+full_rect.bottom);
+		if(main_activity.EnableLog) Log.i("STLayout","gameb: "+l+" "+t+" "+r+" "+b);
+		if(main_activity.EnableLog) Log.i("STLayout","gameb full "+full_rect.left+" "+full_rect.top+" "+full_rect.right+" "+full_rect.bottom);
 		
 		img_back.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		
@@ -378,7 +378,7 @@ public class GameBView extends BaseGameView {
 			HashMap<Object,Object> params=new HashMap<Object,Object>();
 
 			params.put((byte)1,new_wheel_pos);
-			main_activity.sendEvent(GameEventCode.Game_B_Rotate,params);
+			main_activity.sendEvent(GameEventCode.Game_B_Rotate,params,false);
 			
 //			wheel_view.setRotateAngle((float)(-delta_strength/9.8*90));
 
@@ -407,7 +407,7 @@ public class GameBView extends BaseGameView {
 	
 	
 	public void setWaitingIndex(int set_index,int waiting_state){
-		Log.i("STLog","waiting: "+set_index);
+		if(main_activity.EnableLog) Log.i("STLog","waiting: "+set_index);
 		
 	}
 	private Bitmap createCarBitmap(int index_car,int width,int height){

@@ -20,7 +20,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private Size optimal_size;
     private Rect frame_size;
     
-    public CameraPreview(Context context, Camera camera,Size set_optimal,Rect set_frame){
+    boolean enable_log;
+    
+    public CameraPreview(Context context, Camera camera,Size set_optimal,Rect set_frame,boolean set_log){
         super(context);
         mCamera = camera;
         optimal_size=set_optimal;
@@ -32,12 +34,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         mHolder.addCallback(this);
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        
+        enable_log=set_log;
     }
 
     public void surfaceCreated(SurfaceHolder holder) {
         // The Surface has been created, now tell the camera where to draw the preview.
     	
-    	Log.i(TAG, "Camera surface created!");
+    	if(enable_log) Log.i(TAG, "Camera surface created!");
     	
     	if(mCamera==null){
     		Log.i(TAG, "Surface without camera");
@@ -52,14 +56,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             mCamera.startPreview();
             
         } catch (IOException e) {
-            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
+        	if(enable_log) Log.d(TAG, "Error setting camera preview: " + e.getMessage());
         }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
         // empty. Take care of releasing the Camera preview in your activity.
     	
-    	 Log.i(TAG, "Camera surface destroyed!");
+    	if(enable_log) Log.i(TAG, "Camera surface destroyed!");
     	 //this.getHolder().removeCallback(this);
     	 //mCamera.stopPreview();
     }
@@ -81,9 +85,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 			 Size s = parameters.getPreviewSize();
 			 double w = s.width;
 			 double h = s.height;
-			 Log.i(TAG,"optimal size: "+optimal_size.width+" , "+optimal_size.height);
-			 Log.i(TAG,"camera size: "+w+" , "+h+" picture size: "+parameters.getPictureSize().width+" , "+parameters.getPictureSize().height);
-			 Log.i(TAG,"surface size: "+frame_size.width()+" "+frame_size.height());
+		    	if(enable_log) Log.i(TAG,"optimal size: "+optimal_size.width+" , "+optimal_size.height);
+		    	if(enable_log)  Log.i(TAG,"camera size: "+w+" , "+h+" picture size: "+parameters.getPictureSize().width+" , "+parameters.getPictureSize().height);
+		    	if(enable_log) Log.i(TAG,"surface size: "+frame_size.width()+" "+frame_size.height());
 
 			 //this.setLayoutParams(new FrameLayout.LayoutParams((int)optimal_size.width,(int)optimal_size.height));
 			 float layout_ratio=(float)frame_size.height()/(float)frame_size.width();
@@ -96,13 +100,13 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 			 }
 			 //this.setLayoutParams(new FrameLayout.LayoutParams((int)w,(int)h));		 
 				
-			 Log.i(TAG,"surface size: "+this.getWidth()+" "+this.getHeight());
+		    	if(enable_log) Log.i(TAG,"surface size: "+this.getWidth()+" "+this.getHeight());
 			 
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
 
         } catch (Exception e){
-            Log.i(TAG, "Error starting camera preview: " + e.getMessage());
+        	if(enable_log) Log.i(TAG, "Error starting camera preview: " + e.getMessage());
         }
     }
 }

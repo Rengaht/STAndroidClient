@@ -23,16 +23,18 @@ import de.exitgames.client.photon.enums.ConnectionProtocol;
 public class PhotonClient extends LoadBalancingClient implements Runnable{
 	
 	static final String LOG_TAG="STConnect";
-//	static final String SERVER_IP="kerkerker.artgital.com:5055";
-	static final String SERVER_IP="192.168.2.227:5055";
+	static final String SERVER_IP="kerkerker.artgital.com:5055";
+//	static final String SERVER_IP="192.168.2.227:5055";
 	static final String SERVER_APP="STPhotonServer";
 	
     Handler main_handler;
     boolean is_connected=true;
+    boolean enable_log;
     
-	public PhotonClient(Handler handle){
+	public PhotonClient(Handler handle,boolean _log){
 		super();
 		main_handler=handle;
+		enable_log=_log;
 	}
 	@Override
 	public void run(){
@@ -51,12 +53,12 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
 				}	
 				
 				if(!is_connected){
-					Log.i(LOG_TAG,"Thread End!! Connect in 5s.....");					
+					if(enable_log) Log.i(LOG_TAG,"Thread End!! Connect in 5s.....");					
 					break;
 				}
 			}
 		}else{
-			Log.i(LOG_TAG,"Connection Fail!");
+			if(enable_log) Log.i(LOG_TAG,"Connection Fail!");
 		}
 		
 	}
@@ -72,9 +74,11 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
      */
     public boolean sendSomeEvent(int event_code,HashMap<Object,Object> event_params)
     {
-    	Log.i(LOG_TAG,"Send Event: "+event_code);
+    	if(enable_log) Log.i(LOG_TAG,"Send Event: "+event_code);
     	Set<Object> lkey=event_params.keySet();
-    	for(Object k:lkey) Log.i(LOG_TAG,k+"->"+event_params.get(k));
+    	if(enable_log) {
+    		for(Object k:lkey) Log.i(LOG_TAG,k+"->"+event_params.get(k));
+    	}
     	
         return this.loadBalancingPeer.opRaiseEvent((byte)event_code, event_params, false, (byte)0);       // this is received by OnEvent()
         
@@ -84,17 +88,17 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
     {
         super.onStatusChanged(statusCode);
         
-        Log.i(LOG_TAG,"OnStatusChanged: "+statusCode.name());
+        if(enable_log) Log.i(LOG_TAG,"OnStatusChanged: "+statusCode.name());
         
         switch(statusCode){
             case Connect:
             	is_connected=true;
-                Log.i(LOG_TAG, "Connect!");
+            	if(enable_log) Log.i(LOG_TAG, "Connect!");
                 sendMessageToMain(0,GameEventCode.Server_Connected.getValue(),null);
                 break;
             case Disconnect:
             	is_connected=false;
-                Log.i(LOG_TAG, "Disconnect!");
+            	if(enable_log) Log.i(LOG_TAG, "Disconnect!");
                 sendMessageToMain(0,GameEventCode.Server_Disconnected.getValue(),null);
                 break;
             default:
@@ -111,7 +115,7 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
     {
         super.onEvent(eventData);
         
-        Log.i(LOG_TAG,"OnEvent: "+eventData.Code);
+        if(enable_log) Log.i(LOG_TAG,"OnEvent: "+eventData.Code);
         
         TypedHashMap<Byte,Object> params=eventData.Parameters;
         GameEventCode event_code=GameEventCode.fromInt(eventData.Code);
@@ -142,7 +146,7 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
         
         super.onOperationResponse(operationResponse);
         
-        Log.i(LOG_TAG,"OnOperationResponse: "+operationResponse.OperationCode);
+        if(enable_log) Log.i(LOG_TAG,"OnOperationResponse: "+operationResponse.OperationCode);
         
 //        TypedHashMap<Byte,Object> params=operationResponse.Parameters;
         GameEventCode event_code=GameEventCode.fromInt(operationResponse.OperationCode);

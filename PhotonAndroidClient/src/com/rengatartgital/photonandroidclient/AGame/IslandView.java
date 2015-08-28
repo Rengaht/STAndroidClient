@@ -296,7 +296,7 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		arr_ipart[icat]=ipart;
 		String str="";
 		for(int i=0;i<6;++i) str+=(arr_ipart[i]+",");
-		Log.i("STLog","update part: "+str);
+		//Log.i("STLog","update part: "+str);
 		
 		char cbuild=(char)(97+ibuild);
 		char ccat=(char)(97+icat-1);
@@ -306,7 +306,7 @@ public class IslandView extends View implements AnimatorUpdateListener{
 		else if(icat==0) res_uri+=(cbuild+"_main");
 		else res_uri+=(cbuild+"_"+ccat+"_"+(ipart+1));
 		
-		Log.i("STLog","part name: "+res_uri);
+		//Log.i("STLog","part name: "+res_uri);
 		
 		int res_id=getResources().getIdentifier(res_uri, null, getContext().getPackageName());
 		

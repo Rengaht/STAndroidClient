@@ -267,7 +267,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 						case SetHouse:
 //							iland_view.updatePart(itmp_selection,0,itmp_selection);
 							itmp_build=itmp_selection;
-							Log.i("STLog","set house: "+itmp_build);
+							if(main_activity.EnableLog) Log.i("STLog","set house: "+itmp_build);
 //							updateGameState(GameState.SetPart1);
 							showPartScore();
 							break;
@@ -432,8 +432,8 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		Rect full_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b);	
 		
 		
-		Log.i("STLayout","gameb: "+l+" "+t+" "+r+" "+b);
-		Log.i("STLayout","gameb full "+full_rect.left+" "+full_rect.top+" "+full_rect.right+" "+full_rect.bottom);
+		if(main_activity.EnableLog) Log.i("STLayout","gamea: "+l+" "+t+" "+r+" "+b);
+		if(main_activity.EnableLog) Log.i("STLayout","gamea full "+full_rect.left+" "+full_rect.top+" "+full_rect.right+" "+full_rect.bottom);
 		
 		img_back.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
 		img_finish.layout(full_rect.left,full_rect.top,full_rect.right,full_rect.bottom);
@@ -532,7 +532,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			case Server_Name_Success:
 				int res_status=(Integer)params.get((byte)1);
 				if(res_status==1){
-					Log.i("STLog","Send Name Success");
+					if(main_activity.EnableLog) Log.i("STLog","Send Name Success");
 //					updateGameState(GameState.SetHouse);
 					next_state=GameState.SetHouse;
 					goNextState();
@@ -635,7 +635,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	}
 	public void updateGameState(GameState set_state){
 		
-		Log.i("STLog","--- Game A State: "+set_state.toString());
+		if(main_activity.EnableLog) Log.i("STLog","--- Game A State: "+set_state.toString());
 		
 		
 		int mchild=this.getChildCount();
@@ -873,11 +873,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		sensor_frame=(sensor_frame+1)%SENSOR_RESOLUTION;
 		if(sensor_frame!=0) return;
 		
-		Log.i("Sensor","strength= "+sensor_value[0]+","+sensor_value[1]+","+sensor_value[2]);
+		if(main_activity.EnableLog) Log.i("Sensor","strength= "+sensor_value[0]+","+sensor_value[1]+","+sensor_value[2]);
 		
 		float delta_strength=0;
 		for(int i=0;i<3;++i) delta_strength+=Math.abs(sensor_value[i]-last_sensor_value[i]);
-		Log.i("Sensor","delta_strength= "+delta_strength);
+		if(main_activity.EnableLog) Log.i("Sensor","delta_strength= "+delta_strength);
 		
 		
 		if(delta_strength>SHAKE_THRESHOLD){
@@ -897,7 +897,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		if(main_activity.icur_game!=0) return;
 		
     	
-		main_activity.sendEvent(ev_code,new HashMap<Object,Object>());
+		main_activity.sendEvent(ev_code,new HashMap<Object,Object>(),false);
 		switch(ev_code){
 			case Game_A_Light:
 				if(iland_view.arr_ipart[3]>1) main_activity.playSound(11);

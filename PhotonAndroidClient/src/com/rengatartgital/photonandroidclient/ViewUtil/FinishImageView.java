@@ -163,7 +163,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 
 			@Override
 			public void onAnimationEnd(Animator arg0){
-				Log.i("STLog","Fade in end!!");
+				//Log.i("STLog","Fade in end!!");
 				fadeout_animator.start();
 			}
 
@@ -197,7 +197,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	private void drawOnCanvas(Canvas canvas){
 		
 		
-		Log.i("STLog","Draw Finish View! "+cur_width+" x "+cur_height);
+		//Log.i("STLog","Draw Finish View! "+cur_width+" x "+cur_height);
 		
 		if(back_bmp.getWidth()!=cur_width){
 			back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
@@ -251,7 +251,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	
 	// Region - Save Image
 	void saveImage(){
-		Log.i("STLog","Save Image!!!");
+		//Log.i("STLog","Save Image!!!");
 		Bitmap bmp_tosave=Bitmap.createBitmap(cur_width,cur_height,Bitmap.Config.ARGB_8888);
 		Canvas canvas=new Canvas(bmp_tosave);
 		drawOnCanvas(canvas);
@@ -267,7 +267,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         File pictureFile=getOutputMediaFile();
         if(pictureFile==null) Log.i("STLog","Error creating media file, check storage permissions");
         //else 
-        Log.i("STLog","Image Path: "+pictureFile.getAbsolutePath());
+        //Log.i("STLog","Image Path: "+pictureFile.getAbsolutePath());
        
         try{
             FileOutputStream fos = new FileOutputStream(pictureFile);
@@ -303,7 +303,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	    // Create the storage directory if it does not exist
 	    if (! mediaStorageDir.exists()){
 	        if (! mediaStorageDir.mkdirs()){
-	            Log.d("STLog", "failed to create directory");
+	            //Log.d("STLog", "failed to create directory");
 	            return null;
 	        }else{
 	        	//addPicToGallery(mediaStorageDir.getAbsolutePath());

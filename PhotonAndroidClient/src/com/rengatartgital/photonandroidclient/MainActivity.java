@@ -23,6 +23,7 @@ import com.rengatartgital.photonandroidclient.SoundUtil.BackMusicService;
 import com.rengatartgital.photonandroidclient.SoundUtil.SoundPoolHelper;
 import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
 import com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton;
+import com.rengatartgital.photonandroidclient.ViewUtil.SVProgressHUD;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -36,6 +37,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
@@ -71,6 +75,7 @@ import de.exitgames.client.photon.TypedHashMap;
 
 public class MainActivity extends Activity implements SensorEventListener{
 	
+	public final boolean EnableLog=false;
 	
 	
 	final String LOG_TAG="STLog";
@@ -129,9 +134,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	View dialog_view;
 	
 	
-//	BackgroundSound backsound = new BackgroundSound(R.raw.bgm_gaming);
-//	BackgroundSound enginesound = new BackgroundSound(R.raw.sound_bengine);
-
+	
 	public final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
     		super.handleMessage(msg);
@@ -161,9 +164,13 @@ public class MainActivity extends Activity implements SensorEventListener{
     				case 500:
     					showUnavailable(500);
     					return;
+    				case 900:// show progress bar
+    					SVProgressHUD.showInView(MainActivity.this, "", true);
+    			    	return;
     				case 999:
     					showUnavailable(999);
     					return;
+    				
     			}
     			// go back to main view
     			if(icur_game>=0 && icur_game<3){
@@ -174,14 +181,15 @@ public class MainActivity extends Activity implements SensorEventListener{
     			return;
     		}
     		
+    		SVProgressHUD.dismiss(MainActivity.this);
     		
     		GameEventCode action_code=GameEventCode.fromInt(msg.arg1);
-    		Log.i(LOG_TAG, "Got Msg: "+action_code.toString());
+    		 if(EnableLog) Log.i(LOG_TAG, "Got Msg: "+action_code.toString());
     		
     		
     		TypedHashMap<Byte,Object> params=(TypedHashMap<Byte,Object>)msg.obj;
     		if(params!=null){
-    			Log.i(LOG_TAG,"params_size= "+params.size());
+    			 if(EnableLog) Log.i(LOG_TAG,"params_size= "+params.size());
 	    		Set<Byte> lkey=params.keySet();
 	    		for(Byte k:lkey) Log.i(LOG_TAG,k+"->"+params.get(k));
     		}
@@ -201,25 +209,26 @@ public class MainActivity extends Activity implements SensorEventListener{
 					break;
 				case Server_Id_Game_Info:
 					
+					
+					
 					if(icur_game>-1){ // if is at finish stage, dont' jump to main view
 						if(arr_game_view[icur_game].isFinish()) break;
 //						if(arr_game_view[icur_game].getVisibility()==View.VISIBLE) showUnavailable(100);
 					}
-					
-					
 					initGame(-1);
+					
+					if(params.containsKey((byte)201)){
+						String cur_ver=(String)params.get((byte)201);
+						if(!checkAppVersion(cur_ver)){
+							showUnavailable(998);
+							return;
+						}
+					}
+					
     				if(params.containsKey((byte)1)){
     					int igame=(Integer)params.get((byte)1);
     					if(igame>=0){
-//    						if(params.containsKey((byte)2)){
-//    							boolean istatus=(Boolean)params.get((byte)2);
-//    							if(!istatus){
-//    								showUnavailable(0);
-//    								break;
-//    							}
-//    						}
-    						
-    						
+
     						setupGameButton(igame);
     						if(params.containsKey((byte)100)){
     		    				String get_id=(String)params.get((byte)100);
@@ -238,11 +247,11 @@ public class MainActivity extends Activity implements SensorEventListener{
     				if(params.containsKey((byte)101)) side_index=(Integer)params.get((byte)101);
     				if(params.containsKey((byte)102)){
     					waiting_index=(Integer)params.get((byte)102);
-    					Log.i(LOG_TAG,"Waiting_Index= "+waiting_index);
+    					 if(EnableLog) Log.i(LOG_TAG,"Waiting_Index= "+waiting_index);
     				}
     				if(params.containsKey((byte)103)){
     					waiting_stamp=(String)params.get((byte)103);
-    					Log.i(LOG_TAG,"Waiting_Stamp= "+waiting_stamp);
+    					 if(EnableLog) Log.i(LOG_TAG,"Waiting_Stamp= "+waiting_stamp);
     				}
     				
 //    				initGame(icur_game);
@@ -522,6 +531,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     public void Reconnect(boolean delay){
     	
 //    	if(icur_game>-1 && arr_game_view[icur_game].isFinish()) return;
+    	SVProgressHUD.showInView(MainActivity.this, "", true);
     	
     	if(!delay){
     		
@@ -532,7 +542,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     	
     	
     	hint_text.setText("Reconnect...");
-    	Log.i("STConnect","Reconnect....");
+    	 if(EnableLog) Log.i("STConnect","Reconnect....");
     	Timer timer=new Timer();
     	TimerTask task=new TimerTask(){
 			@Override
@@ -549,18 +559,24 @@ public class MainActivity extends Activity implements SensorEventListener{
     		  if(photon_client.is_connected) photon_client.disconnect();
     	  }
     	  //if(client_thread!=null) client_thread.
-    	  photon_client=new PhotonClient(handler);
+    	  photon_client=new PhotonClient(handler,EnableLog);
           client_thread=new Thread(photon_client);
           client_thread.start();
           
+      	
+          
     }
-    
     public void sendEvent(GameEventCode send_event_code,HashMap<Object,Object> params){
+    	sendEvent(send_event_code,params,true);
+    }
+    public void sendEvent(GameEventCode send_event_code,HashMap<Object,Object> params,boolean show_progress){
 		if(params==null) params=new HashMap<Object,Object>();
 		if(client_id!=null) params.put((byte)100, client_id);
 		if(side_index!=null) params.put((byte)101,side_index);
 		
 		photon_client.sendSomeEvent(send_event_code.getValue(),params);
+		
+		if(show_progress) SVProgressHUD.showInView(MainActivity.this, "", true);
 	}
 	
     public void sendCheckIdEvent(){
@@ -572,12 +588,15 @@ public class MainActivity extends Activity implements SensorEventListener{
     	params.put((byte)100, client_id);
     	
     	sendEvent(GameEventCode.UCheckId,params);
+    	
+    	
+    	
     }
     
     
 	public String getEncodedImage(byte[] abyte){
 		String encode=Base64.encodeToString(abyte,Base64.DEFAULT);
-		Log.i("STLog","encoded string length= "+encode.length());
+		 if(EnableLog) Log.i("STLog","encoded string length= "+encode.length());
 		return encode;
 	}
 	
@@ -608,7 +627,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     	}
     	
     	
-    	Log.i(LOG_TAG,"Init Game "+game_index);
+    	 if(EnableLog) Log.i(LOG_TAG,"Init Game "+game_index);
     	
     	icur_game=game_index;
     	    	
@@ -642,16 +661,19 @@ public class MainActivity extends Activity implements SensorEventListener{
 		switch(istatus){
 			case 0:
 			case 2:
-				text_show="等等再來";
+				text_show="稍後再試";
 				break;
 			case 100:
-				text_show="開始新遊戲";
-				break;
+//				text_show="開始新遊戲";
+				return;
 			case 200:
-				text_show="時間到";
-				break;				
+//				text_show="遊戲結束";
+				return;				
 			case 500:
 				text_show="你可以取更好的名字";
+				break;
+			case 998:
+				text_show="請下載新版本";
 				break;
 			case 999:
 				text_show="發生問題";
@@ -720,7 +742,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     // Region -- AccSensor
     private void initSensor(){
     	
-    	Log.i(LOG_TAG,"Init Sensor");
+    	 if(EnableLog) Log.i(LOG_TAG,"Init Sensor");
     	
     	sensor_manager=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
     	List<Sensor> sensors=sensor_manager.getSensorList(Sensor.TYPE_ACCELEROMETER);
@@ -730,7 +752,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     		for(Sensor sensor:sensors)
     			sensor_manager.registerListener(this,sensor,SensorManager.SENSOR_DELAY_GAME);
     		
-    		Log.i(LOG_TAG,"Sensor ready!");
+    		 if(EnableLog) Log.i(LOG_TAG,"Sensor ready!");
     		
     		beat_timestamp=-BEAT_RESOLUTION;
     				
@@ -791,7 +813,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	public void addPicToGallery(String file_path){
 		
-		Log.i("STLog","Add to gallery: "+file_path);
+		if(EnableLog) Log.i("STLog","Add to gallery: "+file_path);
 //	    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 //	    File f = new File(file_path);
 //	    Uri contentUri = Uri.fromFile(f);
@@ -816,7 +838,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 //		File root=android.os.Environment.getExternalStorageDirectory(); 
 		File file=new File(getApplicationContext().getFilesDir(),PARAM_FILE_NAME);
-		Log.i(LOG_TAG,"read params file: "+file.getAbsolutePath());
+		 if(EnableLog) Log.i(LOG_TAG,"read params file: "+file.getAbsolutePath());
 		
 		/** create default if not found */
 		if(!file.exists()) writeParameterFile(true);
@@ -859,7 +881,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	private void writeParameterFile(boolean write_default){
 		
 		File file=new File(getApplicationContext().getFilesDir(),PARAM_FILE_NAME);
-		Log.i(LOG_TAG,"write params file: "+file.getAbsolutePath());
+		 if(EnableLog) Log.i(LOG_TAG,"write params file: "+file.getAbsolutePath());
 		
 		FileOutputStream out=null;
 		JsonWriter writer;
@@ -903,7 +925,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    stopBGM();
 	    stopAllSoundEffect();
 	    
-	    Log.i("STLog","---- PAUSE ----");
+	    if(EnableLog) Log.i("STLog","---- PAUSE ----");
 	     //TODO: save tmp data
 	    if(icur_game>-1) arr_game_view[icur_game].End();
 	    //initGame(-1);
@@ -916,7 +938,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    
 	    if(play_sound) startBGM();
 	    
-	    Log.i("STLog","---- RESUME ----");
+	    if(EnableLog) Log.i("STLog","---- RESUME ----");
 	    
 	    // TODO: recover tmp-saved data
 	    readParameterFile();
@@ -957,13 +979,13 @@ public class MainActivity extends Activity implements SensorEventListener{
 	        while(!isCancelled()){
 	        	try{
 	                //do something
-	                Log.i(LOG_TAG, "Sleeping...");
+	                if(EnableLog) Log.i(LOG_TAG, "Sleeping...");
 	                Thread.sleep(500);
 	            }catch(InterruptedException e){
-	                Log.i(LOG_TAG, "Task was inturrupted");
+	            	 if(EnableLog) Log.i(LOG_TAG, "Task was inturrupted");
 	                player.stop();
 	            }catch(Exception e){
-	                Log.e(LOG_TAG, e.toString(), e);
+	            	 if(EnableLog) Log.e(LOG_TAG, e.toString(), e);
 	            }   
 	        }
 	        
@@ -978,6 +1000,20 @@ public class MainActivity extends Activity implements SensorEventListener{
 			setEngineSoundRate(1);
 		}
 	}
-
+	
+	
+	boolean checkAppVersion(String check_ver){
+		String appVersion="";
+		PackageManager manager=this.getPackageManager();
+		try{ 
+			PackageInfo info=manager.getPackageInfo(this.getPackageName(),0);
+			appVersion = info.versionName; 
+		}catch(NameNotFoundException e){
+			e.printStackTrace();
+		}
+		
+		return appVersion.equals(check_ver);
+		
+	}
 	
 }

@@ -63,7 +63,7 @@ public class ScaleSeekBar extends View{
 		
 		int hei=getHeight();
 		thumb_bmp=Bitmap.createScaledBitmap(thumb_bmp,(int)(hei*.78f),hei,true);
-		Log.i("STLog","set thumb size= "+thumb_bmp.getHeight());
+		//Log.i("STLog","set thumb size= "+thumb_bmp.getHeight());
 		
 		MAX_POSITION=getWidth()-hei*.78f/2-getWidth()*0.138f;
 		MIN_POSITION=hei*.78f/2+getWidth()*0.138f;
@@ -86,7 +86,7 @@ public class ScaleSeekBar extends View{
 			if(thumb_position<MIN_POSITION) thumb_position=MIN_POSITION;
 		}
 		
-		Log.i("STLog","seek pos= "+thumb_position);
+		//Log.i("STLog","seek pos= "+thumb_position);
 		this.invalidate();
 		
 		return getScale(thumb_position);

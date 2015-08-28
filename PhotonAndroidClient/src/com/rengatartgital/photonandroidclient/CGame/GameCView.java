@@ -14,6 +14,7 @@ import com.rengatartgital.photonandroidclient.R.layout;
 import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
 import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
 import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
+import com.rengatartgital.photonandroidclient.ViewUtil.SVProgressHUD;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -409,12 +410,18 @@ public class GameCView extends BaseGameView{
 	public void HandleMessage(GameEventCode action_code,TypedHashMap<Byte, Object> params){
 		switch(action_code){
 			case Server_Face_Success:
-				Log.i("STLog","Send Face Success");
-				updateGameState(GameState.GameC_End);
+				if(main_activity.EnableLog) Log.i("STLog","Send Face Success");
+				boolean success=((Integer)params.get((byte)1)==1);
+				if(success){
+					updateGameState(GameState.GameC_End);
+				}else{
+					Message msg=Message.obtain(main_activity.handler,100,999,0,null);
+			        main_activity.handler.sendMessage(msg);
+				}
 				//End();
 				break;
 			case Server_GG:
-				Log.i("STLog","Game C GG");
+				if(main_activity.EnableLog) Log.i("STLog","Game C GG");
 				End();
 				break;
 			default:
@@ -524,14 +531,14 @@ public class GameCView extends BaseGameView{
 			
 	       this.invalidate();
 		}catch(Exception e){
-			Log.i("STLog","PhotoView Exception!!");
+			if(main_activity.EnableLog) Log.i("STLog","PhotoView Exception!!");
 			e.printStackTrace();
 		}
 	}
 	private Bitmap createPhotoBitmap(Bitmap draw_bmp){
 		
 		if(draw_bmp==null){
-			Log.i("STLog","bitmap null!");
+			if(main_activity.EnableLog) Log.i("STLog","bitmap null!");
 			
 			Bitmap altered_bitmap = Bitmap.createBitmap(frame_rect.width(),frame_rect.height(),Bitmap.Config.ARGB_8888);
 			Canvas canvas=new Canvas(altered_bitmap);
@@ -546,7 +553,7 @@ public class GameCView extends BaseGameView{
 			return altered_bitmap;
 		}
 		
-		Log.i("STLog","bitmap draw!");
+		if(main_activity.EnableLog) Log.i("STLog","bitmap draw!");
 		Bitmap altered_bitmap = Bitmap.createBitmap(draw_bmp.getWidth(),draw_bmp.getHeight(),Bitmap.Config.ARGB_8888);
 		Canvas canvas=new Canvas(altered_bitmap);
         Paint paint=new Paint();
@@ -577,11 +584,11 @@ public class GameCView extends BaseGameView{
 	private Bitmap createFaceBitmap(Bitmap draw_bmp){
 		
 		if(draw_bmp==null){
-			Log.i("STLog","face null!");
+			if(main_activity.EnableLog) Log.i("STLog","face null!");
 			return null;
 		}
 		
-		Log.i("STLog","face draw!");
+		if(main_activity.EnableLog) Log.i("STLog","face draw!");
 		Bitmap altered_bitmap = Bitmap.createBitmap(draw_bmp.getWidth(),draw_bmp.getHeight(),Bitmap.Config.ARGB_8888);
 		Canvas canvas=new Canvas(altered_bitmap);
         Paint paint=new Paint();
@@ -622,11 +629,11 @@ public class GameCView extends BaseGameView{
 	}
 	private Bitmap createAvatarBitmap(Bitmap orig_bmp,int index_avatar,int width,int height){
 		if(orig_bmp==null){
-			Log.i("STLog","face null!");
+			if(main_activity.EnableLog) Log.i("STLog","face null!");
 			return null;
 		}
 		
-		Log.i("STLog","face draw!");
+		if(main_activity.EnableLog) Log.i("STLog","face draw!");
 
     	Bitmap oimg_avatar_bmp=null;
 		switch(index_avatar){
@@ -682,7 +689,7 @@ public class GameCView extends BaseGameView{
     	try{
     		stream.close();
     	}catch(Exception e){
-    		Log.e("STLog",e.toString());
+    		if(main_activity.EnableLog) Log.e("STLog",e.toString());
     	}
     	
     	return abyte;
@@ -694,7 +701,7 @@ public class GameCView extends BaseGameView{
 		
 		super.Init();
 		
-		Log.i("STLog","Game C Init!");
+		if(main_activity.EnableLog) Log.i("STLog","Game C Init!");
 		updateGameState(GameState.Claim);
 		//initCamera();
 		
@@ -712,7 +719,7 @@ public class GameCView extends BaseGameView{
 		
 		stopCamera();
 		
-		Log.i("STLog","Game C End!!");
+		if(main_activity.EnableLog) Log.i("STLog","Game C End!!");
 //		avatar_bmp.recycle();
 //		photo_bmp.recycle();
 //		saved_bitmap.recycle();
@@ -722,17 +729,17 @@ public class GameCView extends BaseGameView{
 	
 	private void initCamera(){
 		if(!checkCameraHardware(getContext())){
-			Log.i("STLog","No camera!!");
+			if(main_activity.EnableLog) Log.i("STLog","No camera!!");
 			return;
 		}else{
 			//if(camera==null){
 				
-				Log.i("STLog","Init camera!");
+			if(main_activity.EnableLog) Log.i("STLog","Init camera!");
 				
 				camera=getCameraInstance();
 				
 				if(camera==null){
-					Log.i("STLog","NULL camera!");
+					if(main_activity.EnableLog) Log.i("STLog","NULL camera!");
 					return;
 				}
 				
@@ -746,13 +753,13 @@ public class GameCView extends BaseGameView{
 					camera.setParameters(parameters);
 				
 				}catch(Exception e){
-					Log.e("STLog",e.toString());
+					if(main_activity.EnableLog) Log.e("STLog",e.toString());
 				}
 				
 				if(camera_frame.getChildCount()>0) camera_frame.removeAllViews();
 				
 				
-				cam_preview=new CameraPreview(getContext(),camera,optimal_size,frame_rect);
+				cam_preview=new CameraPreview(getContext(),camera,optimal_size,frame_rect,main_activity.EnableLog);
 				camera_frame.addView(cam_preview);
 				
 				
@@ -763,7 +770,7 @@ public class GameCView extends BaseGameView{
 		}
 	}
 	public void stopCamera(){
-		Log.i("STLog","Stop Camera!!");
+		if(main_activity.EnableLog) Log.i("STLog","Stop Camera!!");
 		if(cam_preview!=null){
 			if(camera!=null) camera.stopPreview();
 			//camera.setPreviewCallback(null);
@@ -804,11 +811,11 @@ public class GameCView extends BaseGameView{
 	            }
 	        }
 	        if(cam==null){ // if no front camera
-	        	Log.i("STLog","No Front camera available!!");
+	        	//Log.i("STLog","No Front camera available!!");
 	            cam = Camera.open();
 		        is_front_cam=false;
 	        }else{
-	        	Log.i("STLog","Front Camera available!!");
+	        	//Log.i("STLog","Front Camera available!!");
 	        	is_front_cam=true;
 	        }
 	         
@@ -852,7 +859,7 @@ public class GameCView extends BaseGameView{
 	    	}
     	}
     	
-    	Log.i("STLog","get optimal size: "+w+" "+h+" -> "+optimalSize.width+" -> "+optimalSize.height);
+    	if(main_activity.EnableLog) Log.i("STLog","get optimal size: "+w+" "+h+" -> "+optimalSize.width+" -> "+optimalSize.height);
     	
     	return optimalSize;
     }
@@ -884,7 +891,7 @@ public class GameCView extends BaseGameView{
 	        
 	        orig_bitmap.recycle();
 	        
-	        Log.i("STLog","save to bitmap "+saved_bitmap.getWidth()+" x "+saved_bitmap.getHeight());
+	        if(main_activity.EnableLog) Log.i("STLog","save to bitmap "+saved_bitmap.getWidth()+" x "+saved_bitmap.getHeight());
 	        
 	        updatePhotoView(saved_bitmap);
 	        img_photo.setVisibility(View.VISIBLE);
@@ -904,7 +911,9 @@ public class GameCView extends BaseGameView{
 		params.put((byte)2, main_activity.getEncodedImage(data));
 		params.put((byte)3, iavatar);
 		main_activity.sendEvent(GameEventCode.Game_C_Face,params);
-        
+		
+		
+		
 		//End();
 	
 	}
