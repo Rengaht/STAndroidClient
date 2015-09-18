@@ -126,7 +126,7 @@ public class SVProgressHUD {
 			static_toast = new Toast(context);
 			static_toast.setView(v);
 		}
-		//  隞oast撖寡情銝剛敺TN����
+		
 		Field field = static_toast.getClass().getDeclaredField("mTN");
 		field.setAccessible(true);
 		Object obj = field.get(static_toast);

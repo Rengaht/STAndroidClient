@@ -24,7 +24,7 @@ public enum GameEventCode{
 	Server_Id_Game_Info(151),
 	Server_Join_Success(152),
 	Server_GG(153),
-//	Server_Join_Success(154),
+	Server_Change_Game(154),
 	
 	Server_Set_Side_Success(160),
 	Server_Name_Success(161),
@@ -83,6 +83,9 @@ public enum GameEventCode{
 				return Server_Join_Success;
 			case 153:
 				return Server_GG;
+			case 154:
+				return Server_Change_Game;
+
 			
 			case 160:
 				return Server_Set_Side_Success;

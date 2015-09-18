@@ -26,8 +26,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -36,11 +39,12 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 public class FinishImageView extends ImageView implements AnimatorUpdateListener{
-	
-	
+
+
 	final int min_date_size=32;
 	
 	private Bitmap front_bmp;
@@ -64,7 +68,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	
 	int index_game;
 	
-	
+
 	
 	public FinishImageView(Context context){
 		super(context);
@@ -87,30 +91,43 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		cur_height=getHeight();
 		
 		index_game=igame;
-		
+
+		int back_id,notice_id;
 		switch(igame){
 			case 0:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamea_end_bg_3);
-				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
+//				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamea_end_bg_3);
+				back_id= drawable.gamea_end_bg_3;
+//				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
+				notice_id= drawable.gameb_notice;
 				break;
 			case 1:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg_3);
-				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
+//				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_end_bg_3);
+				back_id= drawable.gameb_end_bg_3;
+//				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_notice);
+				notice_id= drawable.gameb_notice;
 				break;
 			case 2:
-				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg_3);
-				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_notice);
+//				back_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_end_bg_3);
+				back_id= drawable.gamec_end_bg_3;
+//				notice_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_notice);
+				notice_id= drawable.gamec_notice;
+				break;
+			default:
+				back_id= drawable.gamec_end_bg_3;
+				notice_id= drawable.gameb_notice;
 				break;
 		}
 		
-		back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
+//		back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
+
+		back_bmp=ImageDecodeHelper.decodeImageToSize(getResources(),back_id,cur_width,cur_height);
+
+//		icon_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.home_logo);
+//		icon_bmp=Bitmap.createScaledBitmap(icon_bmp,(int)(cur_width*.445f*.8f),(int)(cur_width*.081f*.8f),true);
+		icon_bmp=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.home_logo, (int) (cur_width * .445f * .8f), (int) (cur_width * .081f * .8f));
 		
-		icon_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.home_logo);
-		icon_bmp=Bitmap.createScaledBitmap(icon_bmp,(int)(cur_width*.445f*.8f),(int)(cur_width*.081f*.8f),true);
-		
-		
-		notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
-		
+//		notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
+		notice_bmp=ImageDecodeHelper.decodeImageToSize(getResources(), notice_id, cur_width,(int)(cur_width*0.0833f));
 		
 		mpaint=new Paint();
 		mstroke_paint=new Paint();
@@ -187,7 +204,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         saveImage();
 		this.invalidate();
 	}
-	
+
+
 	@Override
 	protected void onDraw(Canvas canvas){
 		super.onDraw(canvas);
@@ -199,12 +217,12 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		
 		//Log.i("STLog","Draw Finish View! "+cur_width+" x "+cur_height);
 		
-		if(back_bmp.getWidth()!=cur_width){
-			back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
-			notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
-		}
+//		if(back_bmp.getWidth()!=cur_width){
+//			back_bmp=Bitmap.createScaledBitmap(back_bmp,cur_width,cur_height,true);
+//			notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
+//		}
 		
-		if(back_bmp!=null) canvas.drawBitmap(back_bmp,0,0,mpaint);
+		if(back_bmp!=null) canvas.drawBitmap(back_bmp,new Rect(0,0,back_bmp.getWidth(),back_bmp.getHeight()),new Rect(0,0,cur_width,cur_height),mpaint);
 		if(front_bmp!=null && !front_bmp.isRecycled()){
 			canvas.save();
 			
@@ -252,17 +270,31 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	// Region - Save Image
 	void saveImage(){
 		//Log.i("STLog","Save Image!!!");
-		Bitmap bmp_tosave=Bitmap.createBitmap(cur_width,cur_height,Bitmap.Config.ARGB_8888);
-		Canvas canvas=new Canvas(bmp_tosave);
-		drawOnCanvas(canvas);
-		
-		ByteArrayOutputStream stream = new ByteArrayOutputStream();
-    	bmp_tosave.compress(Bitmap.CompressFormat.PNG,100,stream);
-    	
-		saveImage(stream.toByteArray());
-		
+		try {
+//			Bitmap bmp_tosave = Bitmap.createBitmap(cur_width, cur_height, Bitmap.Config.ARGB_8888);
+//			Canvas canvas = new Canvas(bmp_tosave);
+//			drawOnCanvas(canvas);
+
+			this.buildDrawingCache();
+			Bitmap bmp_tosave=this.getDrawingCache();
+
+
+			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+			bmp_tosave.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+
+
+			saveImage(stream.toByteArray());
+
+			bmp_tosave.recycle();
+
+			stream.close();
+			stream=null;
+
+		}catch(Exception e){
+			Log.e("STLog","Save Image Exception! "+e.getMessage());
+		}
 	}
-	
+
 	void saveImage(byte[] image_data){
         File pictureFile=getOutputMediaFile();
         if(pictureFile==null) Log.i("STLog","Error creating media file, check storage permissions");
@@ -296,7 +328,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	    // using Environment.getExternalStorageState() before doing this.
 
 	    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-	              Environment.DIRECTORY_PICTURES), "Artgital_STApp");
+	              Environment.DIRECTORY_PICTURES), "TechWindow");
 	    // This location works best if you want the created images to be shared
 	    // between applications and persist after your app has been uninstalled.
 
@@ -312,7 +344,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	    }
 	    
 	    // Create a media file name
-	    String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+	    String timeStamp=new SimpleDateFormat("yyyyMMdd_HHmm").format(new Date());
 	    File mediaFile;
 	    
 	    mediaFile=new File(mediaStorageDir.getPath() + File.separator + "IMG_"+ timeStamp + ".jpg");
@@ -325,6 +357,14 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	public void reset(){
 		beginAnimation();
 	}
+	public void clear(){
+		if(front_bmp!=null) front_bmp.recycle();
+		if(back_bmp!=null) back_bmp.recycle();
+		if(icon_bmp!=null) icon_bmp.recycle();
+		if(notice_bmp!=null) notice_bmp.recycle();
+
+	}
+
 	private void beginAnimation(){
 		
 		alpha_notice=0;

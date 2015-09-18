@@ -3,6 +3,7 @@ package com.rengatartgital.photonandroidclient.BGame;
 import com.rengatartgital.photonandroidclient.R;
 import com.rengatartgital.photonandroidclient.R.dimen;
 import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.ViewUtil.ImageDecodeHelper;
 import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
 
 import android.content.Context;
@@ -32,7 +33,7 @@ public class WheelView extends View{
 	float left_rotate_angle,right_rotate_angle;
 	
 	int wwid,whei;
-	
+	Rect  wheel_rect,left_wheel_rect,right_wheel_rect,left_point_rect,right_point_rect;
 	
 	public WheelView(Context context){
 		super(context);
@@ -48,14 +49,65 @@ public class WheelView extends View{
 	}
 	
 	void setupBitmap(){
-		center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
-		left_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_wheel);
-		left_point=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_point);
-		right_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_right_wheel);
-		right_point=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_right_point);
+//		center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
+//		left_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_wheel);
+//		left_point=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_left_point);
+//		right_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_right_wheel);
+//		right_point=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_right_point);
 		
+		//setupRect();
+	}
+	void clear(){
+		if(center_wheel!=null) center_wheel.recycle();
+		if(left_wheel!=null) left_wheel.recycle();
+		if(right_wheel!=null) right_wheel.recycle();
+		if(left_point!=null) left_point.recycle();
+		if(right_point!=null) right_point.recycle();
+
+	}
+	void setupRect(){
+
+		//clear();
+
+		wwid=this.getWidth();
+		whei=this.getHeight();
+
+
+		Resources res=getResources();
+		wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0, 0, wwid, whei,
+				res.getDimension(R.dimen.wheel_cx), res.getDimension(R.dimen.wheel_cy),
+				res.getDimension(R.dimen.wheel_width), res.getDimension(R.dimen.wheel_height));
+		center_wheel=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.gameb_blue, wheel_rect.width(), wheel_rect.height());
+
+		left_wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0, 0, wwid, whei,
+				res.getDimension(R.dimen.left_wheel_cx), res.getDimension(R.dimen.left_wheel_cy),
+				res.getDimension(R.dimen.left_wheel_width), res.getDimension(R.dimen.left_wheel_height));
+//		left_wheel=Bitmap.createScaledBitmap(left_wheel,left_wheel_rect.width(),left_wheel_rect.height(), true);
+		left_wheel=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.gameb_left_wheel, left_wheel_rect.width(), left_wheel_rect.height());
+		
+		right_wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0, 0, wwid, whei,
+				res.getDimension(R.dimen.right_wheel_cx), res.getDimension(R.dimen.right_wheel_cy),
+				res.getDimension(R.dimen.right_wheel_width), res.getDimension(R.dimen.right_wheel_height));
+//		right_wheel=Bitmap.createScaledBitmap(right_wheel,right_wheel_rect.width(),right_wheel_rect.height(), true);
+		right_wheel=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.gameb_right_wheel, right_wheel_rect.width(), right_wheel_rect.height());
+
+
+		left_point_rect=LayoutHelper.getLandscapeLayoutCoordinate(0, 0, wwid, whei,
+				res.getDimension(R.dimen.left_point_cx), res.getDimension(R.dimen.left_point_cy),
+				res.getDimension(R.dimen.left_point_width), res.getDimension(R.dimen.left_point_height));
+//		left_point=Bitmap.createScaledBitmap(left_point, left_point_rect.width(), left_point_rect.height(), true);
+		left_point=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.gameb_left_point, left_point_rect.width(), left_point_rect.height());
+
+
+		right_point_rect=LayoutHelper.getLandscapeLayoutCoordinate(0, 0, wwid, whei,
+				res.getDimension(R.dimen.right_point_cx), res.getDimension(R.dimen.right_point_cy),
+				res.getDimension(R.dimen.right_point_width), res.getDimension(R.dimen.right_point_height));
+//		right_point=Bitmap.createScaledBitmap(right_point, right_point_rect.width(), right_point_rect.height(), true);
+		right_point=ImageDecodeHelper.decodeImageToSize(getResources(), drawable.gameb_right_point, right_point_rect.width(), right_point_rect.height());
+
 		wait_paint=new Paint();
 		wait_paint.setARGB(120,0,0,0);
+		
 	}
 	void reset(){
 		center_rotate_angle=0;
@@ -63,6 +115,11 @@ public class WheelView extends View{
 		t_center_angle=0;
 		left_rotate_angle=0;
 		right_rotate_angle=-(float)Math.PI/2;
+
+		//setColor(0);
+		setupRect();
+
+
 		this.invalidate();
 	}
 	void start(){
@@ -85,36 +142,15 @@ public class WheelView extends View{
 //	   rect_canvas=LayoutHelper.getLayoutCoordinate(0, 0,wwid,whei);
 	   
 	   setMeasuredDimension(w, h);
+	   
+	  
 	}
 	
 	@Override
 	public void onDraw(Canvas canvas){
 		
 		super.onDraw(canvas);
-		wwid=this.getWidth();
-		whei=this.getHeight();
-		   
-//		Log.i("STLog","Draw Wheel!");
-		Resources res=getResources();
-		Rect wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0,0,wwid,whei,
-				res.getDimension(R.dimen.wheel_cx), res.getDimension(R.dimen.wheel_cy),
-				res.getDimension(R.dimen.wheel_width), res.getDimension(R.dimen.wheel_height));
-		
-		Rect left_wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0,0,wwid,whei,
-				res.getDimension(R.dimen.left_wheel_cx), res.getDimension(R.dimen.left_wheel_cy),
-				res.getDimension(R.dimen.left_wheel_width), res.getDimension(R.dimen.left_wheel_height));
-		
-		Rect right_wheel_rect=LayoutHelper.getLandscapeLayoutCoordinate(0,0,wwid,whei,
-				res.getDimension(R.dimen.right_wheel_cx), res.getDimension(R.dimen.right_wheel_cy),
-				res.getDimension(R.dimen.right_wheel_width), res.getDimension(R.dimen.right_wheel_height));
-		
-		Rect left_point_rect=LayoutHelper.getLandscapeLayoutCoordinate(0,0,wwid,whei,
-				res.getDimension(R.dimen.left_point_cx), res.getDimension(R.dimen.left_point_cy),
-				res.getDimension(R.dimen.left_point_width), res.getDimension(R.dimen.left_point_height));
-		
-		Rect right_point_rect=LayoutHelper.getLandscapeLayoutCoordinate(0,0,wwid,whei,
-				res.getDimension(R.dimen.right_point_cx), res.getDimension(R.dimen.right_point_cy),
-				res.getDimension(R.dimen.right_point_width), res.getDimension(R.dimen.right_point_height));
+		if(this.getWidth()!=wwid || this.getHeight()!=whei) setupRect();
 		
 		
 		
@@ -125,10 +161,13 @@ public class WheelView extends View{
 		if(wait_mode) matrix_left.preRotate((float)(-68),(int)(left_point_rect.width()*0.857),(int)(left_point_rect.height()*0.75));
 		else matrix_left.preRotate((float)(40+80*(left_rotate_angle)),(int)(left_point_rect.width()*0.857),(int)(left_point_rect.height()*0.75));
 		
+		
 		canvas.drawBitmap(left_point,matrix_left,null);
+		
 		left_rotate_angle+=.08*(Math.random()*2-1);
 		if(left_rotate_angle<-1) left_rotate_angle=-1;
 		else if(left_rotate_angle>1) left_rotate_angle=1;
+		
 		
 		canvas.drawBitmap(right_wheel,right_wheel_rect.left,right_wheel_rect.top,null);
 		
@@ -136,7 +175,7 @@ public class WheelView extends View{
 		matrix_right.preTranslate(right_point_rect.left,right_point_rect.top);
 		matrix_right.preRotate((float) (-60+40*(right_rotate_angle)),(int)(right_point_rect.width()*0.2273),(int)(right_point_rect.height()*0.6667));
 		
-		canvas.drawBitmap(right_point,matrix_right,null);
+		canvas.drawBitmap(right_point, matrix_right,null);
 		right_rotate_angle+=.01*(Math.random()*2);
 		
 		
@@ -146,9 +185,9 @@ public class WheelView extends View{
 		if(t_center_angle<1) t_center_angle+=.1;
 		Matrix matrix_center=new Matrix();
 		matrix_center.preTranslate(wheel_rect.left,wheel_rect.top);
-		matrix_center.preRotate(getCurrentCenterAngle(),wheel_rect.width()/2,wheel_rect.height()/2);
+		matrix_center.preRotate(getCurrentCenterAngle(), wheel_rect.width() / 2, wheel_rect.height()/2);
 		
-		canvas.drawBitmap(center_wheel,matrix_center,null);
+		if(center_wheel!=null && !center_wheel.isRecycled()) canvas.drawBitmap(center_wheel,matrix_center,null);
 		
 		if(wait_mode) 
 			canvas.drawRect(0,0,this.getWidth(),this.getHeight(),wait_paint);
@@ -177,14 +216,25 @@ public class WheelView extends View{
 		return dest_center_rotate_angle*(t_center_angle)+center_rotate_angle*(1-t_center_angle);
 	}
 	public void setColor(Integer icolor){
+
+		if(center_wheel!=null) center_wheel.recycle();
+
+		int resid;
 		switch(icolor){
-			case 0:
-				center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
-				break;
 			case 1:
-				center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_red);
+//				center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_red);
+				resid=drawable.gameb_red;
 				break;
+			case 0:
+			default:
+				//center_wheel=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_blue);
+				resid= drawable.gameb_blue;
+				break;
+
 		}
+
+		center_wheel= ImageDecodeHelper.decodeImageToSize(getResources(), resid,wheel_rect.width(),wheel_rect.height());
+
 		postInvalidate();
 	}
 	 

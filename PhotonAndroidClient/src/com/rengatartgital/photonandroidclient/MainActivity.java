@@ -21,6 +21,7 @@ import com.rengatartgital.photonandroidclient.BGame.GameBView;
 import com.rengatartgital.photonandroidclient.CGame.GameCView;
 import com.rengatartgital.photonandroidclient.SoundUtil.BackMusicService;
 import com.rengatartgital.photonandroidclient.SoundUtil.SoundPoolHelper;
+import com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView;
 import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
 import com.rengatartgital.photonandroidclient.ViewUtil.MainBackButton;
 import com.rengatartgital.photonandroidclient.ViewUtil.SVProgressHUD;
@@ -34,6 +35,7 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
@@ -47,6 +49,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.AsyncTask.Status;
 import android.os.Bundle;
@@ -60,6 +63,7 @@ import android.util.Base64;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -71,6 +75,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+import de.exitgames.api.loadbalancing.ClientState;
 import de.exitgames.client.photon.TypedHashMap;
 
 public class MainActivity extends Activity implements SensorEventListener{
@@ -80,7 +85,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	final String LOG_TAG="STLog";
 	final String PARAM_FILE_NAME="stapp_params.json";
-	final boolean OFFLINE=false;
+	final boolean OFFLINE=true;
 	
 	private enum GameState {LogIn,Join};
 	GameState gstate;
@@ -90,7 +95,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	
 	PhotonClient photon_client;
-	
+	Timer timer_reconnect=null;
+	TimerTask task_reconnect=null;
+
+
 	TextView hint_text;
 	
 	String client_id=null;
@@ -118,22 +126,21 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	BaseGameView[] arr_game_view;
 	MainBackButton[] arr_game_button;
-	
+
+	/* for sound */
 	ToggleButton toggle_sound;
 	boolean play_sound=true;
 	
-	
 	SoundPoolHelper mSoundPoolHelper;
-//	int sound_id_start,sound_id_button,sound_id_shutter,sound_id_finish,sound_id_alarm;
 	int[] arr_sound_id;
 	int stream_id_engine=-1;
 	
-	
+	/* for alert dialog */
 	AlertDialog.Builder mdialog_builder;
-	Dialog mdialog;
-	View dialog_view;
+	boolean dialog_show=false;
 	
 	
+	boolean app_paused=false;
 	
 	public final Handler handler=new Handler(){
     	public void handleMessage(Message msg){
@@ -161,23 +168,29 @@ public class MainActivity extends Activity implements SensorEventListener{
     				case 200: // time out
     					showUnavailable(200);
     					break;
-    				case 500:
+    				case 500: // bad name
     					showUnavailable(500);
     					return;
     				case 900:// show progress bar
     					SVProgressHUD.showInView(MainActivity.this, "", true);
     			    	return;
-    				case 999:
+					case 910: //senderr disconected
+						Reconnect(false);
+						return;
+					case 920: //senderr otherwise
+						showUnavailable(999);
+						initGame(-1);
+						Reconnect();
+						return;
+    				case 999: // something wrong
     					showUnavailable(999);
     					return;
     				
     			}
     			// go back to main view
-    			if(icur_game>=0 && icur_game<3){
-    				arr_game_view[icur_game].End();
-    				icur_game=-1;
-    			}
+    			initGame(-1);    			
     			sendCheckIdEvent();
+    			
     			return;
     		}
     		
@@ -195,8 +208,6 @@ public class MainActivity extends Activity implements SensorEventListener{
     		}
     		switch(action_code){
 	    		case Server_Disconnected:
-	    			if(icur_game>-1 && arr_game_view[icur_game].isFinish()) break;
-	    			
 	    			initGame(-1);
 					Reconnect();
 					break;
@@ -209,13 +220,10 @@ public class MainActivity extends Activity implements SensorEventListener{
 					break;
 				case Server_Id_Game_Info:
 					
+					if(isInFinishView()) return;
 					
-					
-					if(icur_game>-1){ // if is at finish stage, dont' jump to main view
-						if(arr_game_view[icur_game].isFinish()) break;
-//						if(arr_game_view[icur_game].getVisibility()==View.VISIBLE) showUnavailable(100);
-					}
-					initGame(-1);
+					boolean _ready=initGame(-1);
+					if(!_ready) return;
 					
 					if(params.containsKey((byte)201)){
 						String cur_ver=(String)params.get((byte)201);
@@ -238,8 +246,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     						 showUnavailable(0);
     					}
     				}
-    				
-    				
+    				    			
     				break;
     				
     			case Server_Join_Success:
@@ -263,9 +270,25 @@ public class MainActivity extends Activity implements SensorEventListener{
     				}
     					
     				break;
+				case Server_Change_Game:
+					
+					if(isInFinishView()) return;
 
+					showUnavailable(200);
+
+					initGame(-1);
+					sendCheckIdEvent();
+
+
+					break;
     			default:
-    				if(icur_game>-1) arr_game_view[icur_game].HandleMessage(action_code, params);
+    				if(icur_game>-1){
+						//try{
+							arr_game_view[icur_game].HandleMessage(action_code, params);
+//						}catch(Exception e){
+//							e.printStackTrace();
+//						}
+					}
     				break;
     		}
     		
@@ -280,10 +303,15 @@ public class MainActivity extends Activity implements SensorEventListener{
     private ServiceConnection Scon =new ServiceConnection(){
 
 	        public void onServiceConnected(ComponentName name, IBinder binder){
+	        	Log.i("STLog","BGM Service Connected!");
 	        	mServ=((BackMusicService.ServiceBinder)binder).getService();
+	        	mServ.resumeMusic();
 	        }
 	
 	        public void onServiceDisconnected(ComponentName name) {
+	        	Log.i("STLog","BGM Service Disconnected!");
+	        	mServ.stopMusic();
+	        	mServ.stopSelf();
 		        mServ = null;
 	        }
     };
@@ -292,14 +320,21 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	
     void doBindService(){
+    	Log.i("STLog","BGM Bind!");
 	    bindService(new Intent(this,BackMusicService.class),Scon,Context.BIND_AUTO_CREATE);
 	    mIsBound = true;
     }
 
     void doUnbindService(){
+    	
 	    if(mIsBound){
-		        unbindService(Scon);
-  		        mIsBound = false;
+	    	
+	    	Log.i("STLog","BGM UnBind!");
+	    	
+	    	mServ.stopSelf();
+	    	stopService(new Intent(this,BackMusicService.class));
+	        unbindService(Scon);
+	        mIsBound = false;
 	    }
     }
     /* End Bgm Service*/
@@ -324,7 +359,7 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         initSensor();
         
-        if(!OFFLINE) ConnectServer();
+       
       
         arr_game_view=new BaseGameView[3];
         arr_game_view[0]=(GameAView)findViewById(R.id.GameA);
@@ -393,8 +428,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 			
 		});
 		FrameLayout.LayoutParams params2=(FrameLayout.LayoutParams)toggle_sound.getLayoutParams();
-		params2.width=(int)(params.height*.8f);
-		params2.height=(int)(params.height*.8f);
+		params2.width=(int)Math.max((params.height*.8f),44);
+		params2.height=(int)Math.max((params.height*.8f),44);
 //        params2.leftMargin=size.x-params.height;
 //        params2.topMargin=(int)(params.height*.2f);
 		
@@ -435,7 +470,7 @@ public class MainActivity extends Activity implements SensorEventListener{
         
         // alert dialog
         
-      dialog_view=this.getLayoutInflater().inflate(R.layout.message_dialog_layout,null);
+      //dialog_view=this.getLayoutInflater().inflate(R.layout.message_dialog_layout,null);
 //		mdialog.setContentView(R.layout.message_dialog_layout);
 //		mdialog.setCanceledOnTouchOutside(true);
 //		Window window = mdialog.getWindow();
@@ -443,24 +478,24 @@ public class MainActivity extends Activity implements SensorEventListener{
 //		window.setGravity(Gravity.CENTER);
 		
 		mvibrator=(Vibrator)getApplication().getSystemService(Service.VIBRATOR_SERVICE);
-		
-//		startBGM();
-		
+	
 		
 		/* setup bgm */
 		doBindService();
-		Intent music = new Intent();
-		music.setClass(this,BackMusicService.class);
-		startService(music);
+
+		
+		
+		 ConnectServer();
+		// else initGame(0);
 		
     }
     
     private void startBGM(){
+    	Log.i("STLog","BGM Start!");
     	if(mServ!=null) mServ.resumeMusic();
 
     }
     private void stopBGM(){
-//    	backsound.cancel(true);   
     	
     	if(mServ!=null)  mServ.pauseMusic();
     }
@@ -516,12 +551,15 @@ public class MainActivity extends Activity implements SensorEventListener{
 
     public void playSound(int isound){
     	
+    	
+    	if(isound==14 || isound==15) mvibrator.vibrate(100);
+    	
     	if(!play_sound) return;
     	
         if(isound!=16) mSoundPoolHelper.play(arr_sound_id[isound],1.0f,1.0f,1,0,1.0f);
         else stream_id_engine=mSoundPoolHelper.play(arr_sound_id[isound],1.0f,1.0f,1,-1,1.0f);
         
-        if(isound==14 || isound==15) mvibrator.vibrate(100);
+        
     }
     
   
@@ -529,7 +567,9 @@ public class MainActivity extends Activity implements SensorEventListener{
         Reconnect(true);
     }
     public void Reconnect(boolean delay){
-    	
+
+		if(app_paused) return;
+
 //    	if(icur_game>-1 && arr_game_view[icur_game].isFinish()) return;
     	SVProgressHUD.showInView(MainActivity.this, "", true);
     	
@@ -542,21 +582,29 @@ public class MainActivity extends Activity implements SensorEventListener{
     	
     	
     	hint_text.setText("Reconnect...");
-    	 if(EnableLog) Log.i("STConnect","Reconnect....");
-    	Timer timer=new Timer();
-    	TimerTask task=new TimerTask(){
-			@Override
-			public void run(){
-				ConnectServer();
-			}
-    	};
-    	timer.schedule(task, 5000);
-    	
+		if(EnableLog) Log.i("STConnect","Reconnect....");
+
+		if(timer_reconnect!=null) {
+			timer_reconnect.cancel();
+			task_reconnect.cancel();
+		}
+		    timer_reconnect = new Timer();
+			task_reconnect = new TimerTask() {
+				@Override
+				public void run() {
+					ConnectServer();
+				}
+			};
+			timer_reconnect.schedule(task_reconnect, 5000);
+
     }
     private void ConnectServer(){
     		
     	  if(photon_client!=null){
-    		  if(photon_client.is_connected) photon_client.disconnect();
+    		  ClientState _state=photon_client.getState();
+    		  Log.i("STConnect","Before Connect ClientState= "+_state.toString());
+    		  if(_state==ClientState.Disconnected || _state==ClientState.Disconnecting) photon_client.disconnect();
+    		  else return;
     	  }
     	  //if(client_thread!=null) client_thread.
     	  photon_client=new PhotonClient(handler,EnableLog);
@@ -607,7 +655,7 @@ public class MainActivity extends Activity implements SensorEventListener{
     
     private void setupGameButton(int igame){
     	
-    	if(mdialog!=null && mdialog.isShowing()) mdialog.dismiss();
+    	//if(mdialog!=null && mdialog.isShowing()) mdialog.dismiss();
     	
 		icur_game=igame;
 		
@@ -615,15 +663,18 @@ public class MainActivity extends Activity implements SensorEventListener{
 		if(igame>-1) arr_game_button[2-igame].setEnabled(true);
 		
 	}   
-    public void initGame(int game_index){
+    public boolean initGame(int game_index){
     	
     	
     	if(game_index==-1){
-    	
+    		
+    		if(icur_game>=0 && icur_game<3){   			
+    			arr_game_view[icur_game].End();
+    		}
     		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     		initMainView();
     		setupGameButton(-1);
-    		return;
+    		return true;
     	}
     	
     	
@@ -633,14 +684,27 @@ public class MainActivity extends Activity implements SensorEventListener{
     	    	
     	for(MainBackButton game_button:arr_game_button) game_button.setVisibility(View.GONE);
     	
-    	arr_game_view[icur_game].setVisibility(View.VISIBLE);
-    	arr_game_view[icur_game].Init();
-    	
     	if(game_index==1) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     	else setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     	
+    	arr_game_view[icur_game].setVisibility(View.VISIBLE);
+    	arr_game_view[icur_game].Init();
+    	
+    	
+    	
     	stream_id_engine=-1;
+    	
+    	return true;
+    	
     }
+    
+    private boolean isInFinishView(){
+    	
+    	if(icur_game>-1 && icur_game<3) return arr_game_view[icur_game].isFinish();
+    	else return false;
+    	
+    }
+    
     private void initMainView(){
     	for(MainBackButton game_button:arr_game_button){ 
     		game_button.setVisibility(View.VISIBLE);
@@ -649,67 +713,80 @@ public class MainActivity extends Activity implements SensorEventListener{
     	for(BaseGameView game_view:arr_game_view){
     		game_view.setVisibility(View.INVISIBLE);
     	}
+    	
+//    	setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+//    	arr_game_view[1].setVisibility(View.VISIBLE);
+
     }
     
     
 
 	private void showUnavailable(int istatus){
 		
-//		if(mdialog!=null && mdialog.isShowing())  mdialog.dismiss();
+		if(dialog_show) return;
+		
 		
 		String text_show="";
 		switch(istatus){
 			case 0:
 			case 2:
-				text_show="µy«á¦A¸Õ";
+				text_show="ç¨å¾Œå†è©¦";
 				break;
 			case 100:
-//				text_show="¶}©l·s¹CÀ¸";
+//				text_show="é–‹å§‹æ–°éŠæˆ²";
 				return;
 			case 200:
-//				text_show="¹CÀ¸µ²§ô";
-				return;				
+				text_show="æœ¬æ™‚æ®µéŠæˆ²çµæŸ";
+				break;
 			case 500:
-				text_show="§A¥i¥H¨ú§ó¦nªº¦W¦r";
+				text_show="ä½ å¯ä»¥å–æ›´å¥½çš„åå­—";
 				break;
 			case 998:
-				text_show="½Ð¤U¸ü·sª©¥»";
+				text_show="è«‹ä¸‹è¼‰æ–°ç‰ˆæœ¬";
 				break;
 			case 999:
-				text_show="µo¥Í°ÝÃD";
-				break;
+				text_show="è™•ç†ä¸­";
+				return;
 		}
-//		Builder alert_builder=new AlertDialog.Builder(MainActivity.this);
-//		alert_builder.setMessage(text_show);
-//		alert_builder.create().show();
-//		alert_builder.setView(dialog_view);
-//		
-//		TextView _text=(TextView)dialog_view.findViewById(R.id.text_message);
-//		_text.setText(text_show);
-		
-//		alert_builder.create();
-//		mdialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-		
-//		mdialog=alert_builder.show();
 		
 		
 		final Dialog dialog=new Dialog(MainActivity.this);
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(R.layout.message_dialog_layout);
 		dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0xCC000000));
+		dialog.setCanceledOnTouchOutside(true);
+		
+		final int _istatus=istatus;
+		dialog.setOnCancelListener(new OnCancelListener(){
+			@Override
+			public void onCancel(DialogInterface arg0) {
+				if(_istatus==998){
+					final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+					try {
+					    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+					} catch (android.content.ActivityNotFoundException anfe) {
+					    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+					}
+				}
+				dialog_show=false;
+			}			
+		});
+		
 		
 		Point size = new Point();
         this.getWindowManager().getDefaultDisplay().getSize(size);
 		WindowManager.LayoutParams params = dialog.getWindow().getAttributes();
-		params.width=(int)(size.x*.75f);
+		params.width=(int)(size.x*.8f);
 		params.height=(int)(size.x*.25f);
 		dialog.getWindow().setAttributes(params);
 		
-		TextView _text=(TextView)dialog.findViewById(R.id.text_message);
+		AutoResizeTextView _text=(AutoResizeTextView)dialog.findViewById(R.id.text_message);
 		_text.setText(text_show);
 		
 		
 		dialog.show();
+		dialog_show=true;
+		
 		
 	}
     
@@ -772,15 +849,31 @@ public class MainActivity extends Activity implements SensorEventListener{
 		
 //		float[] delta_value=new float[3];
 //		for(int i=0;i<3;++i) delta_value[i]=event.values[i];//-last_frame_sensor_value[i];
-//		Log.i("Sensors","sensor: "+delta_value[0]+","+delta_value[1]+","+delta_value[2]);
+
 		
 //		for(int i=0;i<3;++i) last_frame_sensor_value[i]=event.values[i];
 		
 		if(icur_game<0) return;
-		
-		arr_game_view[icur_game].HandleSensor(event.values);
 
-	
+		Display display = ((WindowManager)getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		int displayRotation=display.getRotation();
+		final int axisSwap[][] = {
+				{  1,   -1,  0,  1  },     // ROTATION_0
+				{ -1,   -1,  1,  0  },     // ROTATION_90
+				{ -1,    1,  0,  1  },     // ROTATION_180
+				{  1,    1,  1,  0  }  }; // ROTATION_270
+
+		final int[] as=axisSwap[displayRotation];
+		float[] screenVec=new float[3];
+		screenVec[0]=(float)as[0]*event.values[as[2]];
+		screenVec[1]=(float)as[1]*event.values[as[3]];
+		screenVec[2]=event.values[2];
+
+
+		arr_game_view[icur_game].HandleSensor(screenVec);
+
+		//Log.i("Sensors", "rotation: "+displayRotation+" sensor: " + screenVec[0] + "," + screenVec[1] + "," + screenVec[2]);
+
 	}
 	// EndRegion
 		
@@ -872,8 +965,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 		if(waiting_index!=null && waiting_index<0) waiting_index=null;
 		if(waiting_stamp!=null && waiting_stamp.length()<1) waiting_stamp=null;
 		
-		if(client_id!=null) Log.i(LOG_TAG,">>> USER:¡@"+client_id);
-		if(waiting_index!=null && waiting_stamp!=null) Log.i(LOG_TAG,">>> WAITING:¡@"+waiting_index+" "+waiting_stamp);
+		if(client_id!=null) Log.i(LOG_TAG,">>> USER:ï¿½@"+client_id);
+		if(waiting_index!=null && waiting_stamp!=null) Log.i(LOG_TAG,">>> WAITING:ï¿½@"+waiting_index+" "+waiting_stamp);
 		
 		
 	}
@@ -920,7 +1013,8 @@ public class MainActivity extends Activity implements SensorEventListener{
 	
 	@Override
 	public void onPause() {
-	    super.onPause();  
+	    super.onPause();
+		app_paused=true;
 	    
 	    stopBGM();
 	    stopAllSoundEffect();
@@ -930,12 +1024,21 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    if(icur_game>-1) arr_game_view[icur_game].End();
 	    //initGame(-1);
 	    //((GameCView)arr_game_view[2]).stopCamera();
-	    
+
+		//Disconnect from Server
+		if(EnableLog) Log.i("STConnect","App Pause! Disconnect....");
+		photon_client.disconnect();
+
+		SVProgressHUD.dismiss(MainActivity.this);
+
+
+
 	}
 	@Override
 	public void onResume() {
 	    super.onResume();  
-	    
+	    app_paused=false;
+
 	    if(play_sound) startBGM();
 	    
 	    if(EnableLog) Log.i("STLog","---- RESUME ----");
@@ -943,10 +1046,9 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    // TODO: recover tmp-saved data
 	    readParameterFile();
 	    
-	    //arr_game_view[icur_game].Init();
 	    initGame(-1);
 	    sendCheckIdEvent();
-	    //setupGameButton(icur_game);
+	    
 	}
 	
 	@Override
@@ -957,42 +1059,7 @@ public class MainActivity extends Activity implements SensorEventListener{
 	    
 	}
 	
-	public class BackgroundSound extends AsyncTask<Void, Void, Void> {
-
-		
 	
-
-		int sound_id;
-		
-		BackgroundSound(int set_id){
-			super();
-			sound_id=set_id;
-		}
-		
-	    @Override
-	    protected Void doInBackground(Void... params) {
-	        MediaPlayer player = MediaPlayer.create(MainActivity.this, sound_id); 
-	        player.setLooping(true); // Set looping 
-	        player.setVolume(50,50); 
-	        player.start(); 
-	        
-	        while(!isCancelled()){
-	        	try{
-	                //do something
-	                if(EnableLog) Log.i(LOG_TAG, "Sleeping...");
-	                Thread.sleep(500);
-	            }catch(InterruptedException e){
-	            	 if(EnableLog) Log.i(LOG_TAG, "Task was inturrupted");
-	                player.stop();
-	            }catch(Exception e){
-	            	 if(EnableLog) Log.e(LOG_TAG, e.toString(), e);
-	            }   
-	        }
-	        
-	        return null;
-	    }
-
-	}
 
 	private class EngineRateTimerTask extends TimerTask{
 		@Override

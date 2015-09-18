@@ -4,22 +4,7 @@ import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.rengatartgital.photonandroidclient.AGame.IslandView.IlandMode;
-import com.rengatartgital.photonandroidclient.R.array;
-import com.rengatartgital.photonandroidclient.R.dimen;
-import com.rengatartgital.photonandroidclient.R.drawable;
-import com.rengatartgital.photonandroidclient.R.layout;
-import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
-import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
-import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
-import com.rengatartgital.photonandroidclient.GameEventCode;
-import com.rengatartgital.photonandroidclient.MainActivity;
-import com.rengatartgital.photonandroidclient.R;
-
-import de.exitgames.client.photon.TypedHashMap;
-import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.animation.Animator.AnimatorListener;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.content.res.Resources;
@@ -33,15 +18,26 @@ import android.text.InputFilter;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Gravity;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+
+import com.rengatartgital.photonandroidclient.GameEventCode;
+import com.rengatartgital.photonandroidclient.MainActivity;
+import com.rengatartgital.photonandroidclient.R;
+import com.rengatartgital.photonandroidclient.AGame.IslandView.IlandMode;
+import com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView;
+import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
+import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
+import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
+
+import de.exitgames.client.photon.TypedHashMap;
 
 
 public class GameAView extends BaseGameView implements AnimatorUpdateListener{
@@ -58,7 +54,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 //	private Button send_button,left_side_button,right_side_button;
 	private EditText name_text;
 	
-	private enum GameState {SetSide,SetName,SetHouse,SetPart1,SetPart2,SetPart3,SetPart4,SetTrigger,GameA_End};
+	private enum GameState {None,SetSide,SetName,SetHouse,SetPart1,SetPart2,SetPart3,SetPart4,SetTrigger,GameA_End};
 	GameState game_state,next_state;
 	
 	ImageView img_back,img_name,img_choose_people,img_step_title;
@@ -195,8 +191,11 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		img_choose_people=(ImageView)getChildAt(8);
 		
 		img_step_title=(ImageView)getChildAt(9);
-		text_part_title=(TextView)getChildAt(10);
-		text_part_score=(TextView)getChildAt(11);
+		text_part_title=(AutoResizeTextView)getChildAt(10);
+		text_part_score=(AutoResizeTextView)getChildAt(11);
+		text_part_score.setTypeface(typeface_name);
+		
+		
 		
 		btn_arrow_left=(Button)getChildAt(12);
 		btn_arrow_right=(Button)getChildAt(13);
@@ -220,7 +219,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		btn_home=(Button)getChildAt(18);
 		
 		
-		guide_view=(TextView)getChildAt(19);
+		guide_view=(AutoResizeTextView)getChildAt(19);
 		setupGuideText();
 		
 		
@@ -450,8 +449,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				res.getDimension(R.dimen.aname_region_width),res.getDimension(R.dimen.aname_region_height));
 		name_text.layout(rname_rect.left,rname_rect.top,rname_rect.right,rname_rect.bottom);
 		
-		
-		name_text.setTextSize(rname_rect.height()*.5f);
+		name_text.setTextSize(TypedValue.COMPLEX_UNIT_PX,rname_rect.height()*.5f);
 		
 		
 		Rect choose_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.achoose_people_cx),res.getDimension(R.dimen.achoose_people_cy),
@@ -516,13 +514,16 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		Rect text_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.apart_title_cx),res.getDimension(R.dimen.apart_title_cy),
 				res.getDimension(R.dimen.apart_title_width),res.getDimension(R.dimen.apart_title_height));
 		text_part_title.layout(l,text_rect.top,r,text_rect.bottom);
-		text_part_title.setTextSize(Math.max(text_rect.height()*.8f,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
+		//text_part_title.setTextSize(Math.max(text_rect.height()*.8f,res.getDimension(R.dimen.MIN_TEXT_SIZE)));
+		text_part_title.setTextSize(TypedValue.COMPLEX_UNIT_PX,text_rect.height()*.8f);
 		
 		
 		Rect score_rect=LayoutHelper.getLayoutCoordinate(l,t,r,b,res.getDimension(R.dimen.apart_score_cx),res.getDimension(R.dimen.apart_score_cy),
 				res.getDimension(R.dimen.apart_score_width),res.getDimension(R.dimen.apart_score_height));
 		text_part_score.layout(l,score_rect.top,r,score_rect.bottom);
-		text_part_score.setTextSize(score_rect.height()*.85f);
+		
+	//	text_part_score.setTextSize(score_rect.height()*.85f);
+		text_part_score.setTextSize(TypedValue.COMPLEX_UNIT_PX,score_rect.height()*.4f);
 		
 	}
 	@Override
@@ -656,6 +657,9 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 			case SetName:
 				name_text.setVisibility(View.VISIBLE);
 				name_text.setText("");
+				//name_text.setTextSize(text_part_title.getTextSize()*.75f);
+				
+				
 				
 				img_choose_people.setVisibility(View.VISIBLE);
 				img_name.setVisibility(View.VISIBLE);
@@ -751,7 +755,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 				
 			case GameA_End:
 				showFinishView();
-				End();
+				//End();
 				break;
 				
 			default:
@@ -809,6 +813,10 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		
 		float wid=this.getWidth()*.7f;
 		Bitmap build_bmp=Bitmap.createScaledBitmap(iland_view.mbmp,(int)wid,(int)(wid*1.407f),true);
+
+		iland_view.reset();
+
+
 		img_finish.setup(0,build_bmp,main_activity.handler);
 		img_finish.setVisibility(View.VISIBLE);
 		
@@ -835,10 +843,12 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 	@Override
 	public void End() {
 		super.End();
+		game_state=GameState.None;
+
 		blow_handler.removeCallbacks(pollTask);
 		if(blow_sensor!=null) blow_sensor.Stop();
-		
 
+		if(img_finish!=null) img_finish.clear();
 	}
 	
 	// Region -- Handle Blow Sensor

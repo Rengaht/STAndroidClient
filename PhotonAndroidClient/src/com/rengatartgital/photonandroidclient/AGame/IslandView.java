@@ -2,6 +2,7 @@ package com.rengatartgital.photonandroidclient.AGame;
 
 import com.rengatartgital.photonandroidclient.R;
 import com.rengatartgital.photonandroidclient.R.drawable;
+import com.rengatartgital.photonandroidclient.ViewUtil.ImageDecodeHelper;
 
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
@@ -15,6 +16,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.media.Image;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -316,8 +318,11 @@ public class IslandView extends View implements AnimatorUpdateListener{
 	
 		
 		iupp_part=icat;
-		bmp_dest_part=BitmapFactory.decodeResource(getResources(),res_id);
-		
+//		bmp_dest_part=BitmapFactory.decodeResource(getResources(),res_id);
+
+		bmp_dest_part= ImageDecodeHelper.decodeImageToSize(getResources(),res_id,rect_build.width(),rect_build.height());
+
+
 //		anima_part_out.setDuration(300);
 		
 		
@@ -393,6 +398,7 @@ public class IslandView extends View implements AnimatorUpdateListener{
 					final_out_finish=true; 
 				}else{
 					anima_part_in.setDuration(300);
+					if(arr_bmp_part[iupp_part]!=null) arr_bmp_part[iupp_part].recycle();
 					arr_bmp_part[iupp_part]=bmp_dest_part;					
 				}
 				

@@ -65,9 +65,22 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     	
     	if(enable_log) Log.i(TAG, "Camera surface destroyed!");
     	 //this.getHolder().removeCallback(this);
-    	 //mCamera.stopPreview();
-    }
 
+
+
+    }
+    public void stop(){
+        if(mCamera!=null){
+            try {
+                //mCamera.stopPreview();
+                //mCamera.setPreviewCallback(null);
+                this.getHolder().removeCallback(this);
+                //mCamera.release();
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height){
         // If your preview can change or rotate, take care of those events here.
         // Make sure to stop the preview before resizing or reformatting it.

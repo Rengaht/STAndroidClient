@@ -47,7 +47,7 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
 					
 					this.loadBalancingPeer.service();
 					 
-					Thread.sleep(40);
+					Thread.sleep(100);
 				}catch (Exception e){
 					e.printStackTrace();
 				}	
@@ -93,15 +93,25 @@ public class PhotonClient extends LoadBalancingClient implements Runnable{
         switch(statusCode){
             case Connect:
             	is_connected=true;
-            	if(enable_log) Log.i(LOG_TAG, "Connect!");
+            	if(enable_log) Log.i(LOG_TAG, "Status: Connect!");
                 sendMessageToMain(0,GameEventCode.Server_Connected.getValue(),null);
                 break;
             case Disconnect:
             	is_connected=false;
-            	if(enable_log) Log.i(LOG_TAG, "Disconnect!");
+            	if(enable_log) Log.i(LOG_TAG, "Status: Disconnect!");
                 sendMessageToMain(0,GameEventCode.Server_Disconnected.getValue(),null);
                 break;
-            default:
+			case DisconnectByServerLogic:
+				is_connected=false;
+				if(enable_log) Log.i(LOG_TAG, "Status: Disconnect by Server Logic");
+				sendMessageToMain(0,GameEventCode.Server_Disconnected.getValue(),null);
+				break;
+			case SendError:
+				// reconnect immediately
+				if(enable_log) Log.i(LOG_TAG, "Status: SendError");
+//				if(!(this.getState()==ClientState.ConnectedToGameserver)) sendMessageToMain(100,910,null);
+//				else
+ 				sendMessageToMain(100,920,null);
             	break;
         }
     }

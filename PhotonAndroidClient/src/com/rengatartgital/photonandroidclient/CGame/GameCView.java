@@ -13,8 +13,10 @@ import com.rengatartgital.photonandroidclient.R.drawable;
 import com.rengatartgital.photonandroidclient.R.layout;
 import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
 import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
+import com.rengatartgital.photonandroidclient.ViewUtil.ImageDecodeHelper;
 import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
 import com.rengatartgital.photonandroidclient.ViewUtil.SVProgressHUD;
+import com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -53,7 +55,7 @@ public class GameCView extends BaseGameView{
 	final int MAVATAR=12;
 	
 	
-	private enum GameState {Claim,Take_Photo,Adjust_Face,Preview,GameC_End}
+	private enum GameState {None,Claim,Take_Photo,Adjust_Face,Preview,GameC_End}
 	protected static final String TAG = null;;
 	GameState game_state;
 	
@@ -145,7 +147,7 @@ public class GameCView extends BaseGameView{
 		//send_button=(Button)getChildAt(0);
 		//game_over_view=(ImageView)getChildAt(1);
 		
-		guide_view=(TextView)getChildAt(16);
+		guide_view=(AutoResizeTextView)getChildAt(16);
 		setupGuideText();
 		
 		
@@ -157,6 +159,7 @@ public class GameCView extends BaseGameView{
 					case Take_Photo:
 						if(camera!=null){
 							camera.takePicture(null, null, mPicture);
+
 							updateGameState(GameState.Adjust_Face);
 						}
 						main_activity.playShutterSound();
@@ -182,7 +185,8 @@ public class GameCView extends BaseGameView{
 						byte[] byte_saved_img=createUploadPhoto(face_bmp);
 						
 						uploadImage(byte_saved_img);
-						
+						face_bmp.recycle();
+
 						//updateGameState(GameState.GameC_End);
 						break;
 					default:
@@ -422,7 +426,9 @@ public class GameCView extends BaseGameView{
 				break;
 			case Server_GG:
 				if(main_activity.EnableLog) Log.i("STLog","Game C GG");
-				End();
+
+				Message msg=Message.obtain(main_activity.handler,100,200,0,null);
+				main_activity.handler.sendMessage(msg);
 				break;
 			default:
 				break;	
@@ -635,24 +641,25 @@ public class GameCView extends BaseGameView{
 		
 		if(main_activity.EnableLog) Log.i("STLog","face draw!");
 
-    	Bitmap oimg_avatar_bmp=null;
+//    	Bitmap oimg_avatar_bmp=null;
+		int resid=0;
 		switch(index_avatar){
-			case 0: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man001); break;
-			case 1: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_woman001); break;
-			case 2: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man002); break;
-			case 3: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_woman002); break;
-			case 4: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man003); break;
-			case 5: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man004); break;
-			case 6: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man005); break;
-			case 7: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_man006); break;
-			case 8: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_woman003); break;
-			case 9: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_woman004); break;
-			case 10: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_dog); break;
-			case 11: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gamec_cat); break;
+			case 0: resid=R.drawable.gamec_man001; break;
+			case 1: resid=R.drawable.gamec_woman001; break;
+			case 2: resid=R.drawable.gamec_man002; break;
+			case 3: resid=R.drawable.gamec_woman002; break;
+			case 4: resid=R.drawable.gamec_man003; break;
+			case 5: resid=R.drawable.gamec_man004; break;
+			case 6: resid=R.drawable.gamec_man005; break;
+			case 7: resid=R.drawable.gamec_man006; break;
+			case 8: resid=R.drawable.gamec_woman003; break;
+			case 9: resid=R.drawable.gamec_woman004; break;
+			case 10: resid=R.drawable.gamec_dog; break;
+			case 11: resid=R.drawable.gamec_cat; break;
 		}
-		Bitmap img_avatar_bmp=Bitmap.createScaledBitmap(oimg_avatar_bmp,width,height,true);
-		oimg_avatar_bmp.recycle();
-		
+
+		Bitmap img_avatar_bmp= ImageDecodeHelper.decodeImageToSize(getResources(),resid,width,height);
+
 		Bitmap face_bmp=createFaceBitmap(orig_bmp);
 		face_bmp=Bitmap.createScaledBitmap(face_bmp,(int)(width*.69),(int)(width*.69),true);
 		
@@ -716,13 +723,21 @@ public class GameCView extends BaseGameView{
 	@Override
 	public void End(){
 		super.End();
-		
+		game_state=GameState.None;
+
 		stopCamera();
 		
 		if(main_activity.EnableLog) Log.i("STLog","Game C End!!");
-//		avatar_bmp.recycle();
-//		photo_bmp.recycle();
-//		saved_bitmap.recycle();
+
+		if(img_finish!=null) img_finish.clear();
+
+		img_photo.setImageResource(0);
+		img_avatar.setImageResource(0);
+
+		if(saved_bitmap!=null) saved_bitmap.recycle();
+		if(photo_bmp!=null) photo_bmp.recycle();
+		//avatar_bmp.recycle();
+
 	}
 	
 	// Region -- Handle Camera
@@ -774,7 +789,7 @@ public class GameCView extends BaseGameView{
 		if(cam_preview!=null){
 			if(camera!=null) camera.stopPreview();
 			//camera.setPreviewCallback(null);
-			cam_preview.getHolder().removeCallback(null);
+			cam_preview.stop();
 
 		}
 		if(camera!=null){

@@ -4,6 +4,11 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 	
-    <dimen name="MIN_TEXT_SIZE"> 14dp </dimen>
+    <dimen name="MIN_TEXT_SIZE"> 14sp </dimen>
+    <dimen name="MAX_TEXT_SIZE"> 42sp </dimen>
+    
+    <dimen name="GameA_Input_TextSize"> 24sp </dimen>
+    <dimen name="GameA_Title_TextSize"> 28sp </dimen>
+    <dimen name="GameA_Score_TextSize"> 24sp </dimen>
     
 </resources>

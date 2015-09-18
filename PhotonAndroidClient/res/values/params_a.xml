@@ -53,7 +53,7 @@
     <dimen name="aname_title_cx">50px</dimen>
     <dimen name="aname_title_cy">13.85px</dimen>
     <dimen name="aname_title_width">51.76px</dimen>
-    <dimen name="aname_title_height">5.21px</dimen>
+    <dimen name="aname_title_height">6.21px</dimen>
     
     <dimen name="aname_region_cx">50px</dimen>
     <dimen name="aname_region_cy">22.55px</dimen>
@@ -63,13 +63,13 @@
     <dimen name="apart_title_cx">50px</dimen>
     <dimen name="apart_title_cy">19.22px</dimen>
     <dimen name="apart_title_width">100px</dimen>
-    <dimen name="apart_title_height">4.69px</dimen>
+    <dimen name="apart_title_height">6.69px</dimen>
     
     
     <dimen name="apart_score_cx">50px</dimen>
     <dimen name="apart_score_cy">28.2px</dimen>
     <dimen name="apart_score_width">30px</dimen>
-    <dimen name="apart_score_height">5.73px</dimen>
+    <dimen name="apart_score_height">6.8px</dimen>
     
     <dimen name="acount_cx">90px</dimen>
     <dimen name="acount_cy">13.85px</dimen>

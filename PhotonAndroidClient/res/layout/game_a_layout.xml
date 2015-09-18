@@ -48,8 +48,10 @@
 	<EditText
    		android:layout_width="match_parent"
     	android:layout_height="wrap_content"
+    	android:layout_gravity="center"
+    	android:gravity="center_vertical|left"
     	android:background="#e5e642"
-	    android:textColor="#ffffff"
+	    android:textColor="#000000"
 	    android:singleLine="true"
 	    android:textAllCaps="true"
 	    android:maxLength="8" ></EditText>
@@ -65,7 +67,7 @@
 	    android:layout_height="wrap_content"
 	    android:src="@drawable/gamea_step1"
    	    />
-   	<TextView 
+   	<com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView
    	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:textColor="#f5ee36"
@@ -73,9 +75,13 @@
 	    android:editable="false"
 	    android:gravity="center"
 	    android:padding="0dp"
+	    
+	    android:ellipsize="none"
+        android:maxLines="1"    
+        android:textSize="@dimen/MAX_TEXT_SIZE"
 	    />
    	
-   	<TextView 
+   	<com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView
    	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:textColor="#f5ee36"
@@ -83,9 +89,12 @@
 	    android:gravity="center"
 	    android:editable="false"
 	    android:padding="0dp"
-	    android:typeface="monospace"
+	    
+	     android:ellipsize="none"
+        android:maxLines="1"    
+         android:textSize="@dimen/MAX_TEXT_SIZE"
 	    />
-   	
+   
    	
 	<Button 
 	    android:layout_width="wrap_content"
@@ -130,7 +139,7 @@
 	    android:visibility="invisible"
 	    />
 	
-	<TextView
+	<com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
 	    android:text="@string/text_guide_a"
@@ -138,5 +147,9 @@
 	    android:background="#CC000000"
 	    android:textColor="#ffffff"
 	    android:padding="20dp"
+	    
+	    android:ellipsize="none"
+        android:maxLines="4"
+       	android:textSize="@dimen/MAX_TEXT_SIZE"
 	    />
 </merge>

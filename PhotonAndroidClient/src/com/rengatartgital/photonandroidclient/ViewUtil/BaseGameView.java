@@ -19,7 +19,7 @@ public abstract class BaseGameView extends FrameLayout{
 	
 	public MainActivity main_activity;
 	
-	protected TextView guide_view; 
+	protected AutoResizeTextView guide_view; 
 	private String guide_string;
 	protected boolean read_guide;
 	

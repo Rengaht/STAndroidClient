@@ -1,6 +1,10 @@
 package com.rengatartgital.photonandroidclient.ViewUtil;
 
+import android.content.res.Resources;
 import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.text.TextPaint;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 public class LayoutHelper {
@@ -106,4 +110,5 @@ public class LayoutHelper {
 		return new Rect((int)nleft,(int)ntop,(int)nright,(int)nbottom);
 		
 	}
+	
 }

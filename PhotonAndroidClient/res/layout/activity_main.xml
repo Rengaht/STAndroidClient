@@ -1,11 +1,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:mainbgbutton="http://schemas.android.com/apk/res/com.rengatartgital.photonandroidclient"
+    xmlns:mainbgbutton="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.rengatartgital.photonandroidclient.MainActivity"
-    tools:ignore="MergeRootFrame" >
+    tools:ignore="MergeRootFrame"
+    android:background="#000"
+    android:keepScreenOn="true" >
 
 	<TextView 
 	    android:id="@+id/HintView"

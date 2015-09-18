@@ -13,7 +13,9 @@ import com.rengatartgital.photonandroidclient.R.drawable;
 import com.rengatartgital.photonandroidclient.R.layout;
 import com.rengatartgital.photonandroidclient.ViewUtil.BaseGameView;
 import com.rengatartgital.photonandroidclient.ViewUtil.FinishImageView;
+import com.rengatartgital.photonandroidclient.ViewUtil.ImageDecodeHelper;
 import com.rengatartgital.photonandroidclient.ViewUtil.LayoutHelper;
+import com.rengatartgital.photonandroidclient.ViewUtil.AutoResizeTextView;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
@@ -27,6 +29,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -44,7 +47,7 @@ public class GameBView extends BaseGameView {
 	
 	final float BEAT_STRENGTH_THRESHOLD=3.0f;
 	
-	private enum GameState {GameB_Wait,GameB_Ready,Rotate,Win_Lose,GameB_End};
+	private enum GameState {None,GameB_Wait,GameB_Ready,Rotate,Win_Lose,GameB_End};
 	GameState game_state;
 	WheelView wheel_view;
 	ImageView img_wait,img_win,img_lose,img_back,img_start;
@@ -97,7 +100,7 @@ public class GameBView extends BaseGameView {
 		img_finish=(FinishImageView)getChildAt(7);
 		button_home=(Button)getChildAt(8);
 		
-		guide_view=(TextView)getChildAt(9);
+		guide_view=(AutoResizeTextView)getChildAt(9);
 		setupGuideText();
 		
 		button_home.setOnClickListener(new OnClickListener(){
@@ -238,8 +241,10 @@ public class GameBView extends BaseGameView {
 
 		switch(action_code){
 			case Server_GameB_Ready:
-//				main_activity.setSideIndex((Integer)params.get((byte)101));
-				
+				int iside=(Integer)params.get((byte)101);
+				main_activity.setSideIndex(iside);
+				wheel_view.setColor(iside);
+
 				updateGameState(GameState.GameB_Ready);
 				break;
 			case Server_GameB_Start:
@@ -252,7 +257,6 @@ public class GameBView extends BaseGameView {
 					
 				break;
 			case Server_GG:
-				
 				last_car_index=(Integer)params.get((byte)3);
 				last_win=(Integer)params.get((byte)1);		
 				
@@ -335,7 +339,7 @@ public class GameBView extends BaseGameView {
 				break;
 			case GameB_End:
 				showFinishView();
-				End();
+				//End();
 				break;
 			default:
 				break;
@@ -349,26 +353,41 @@ public class GameBView extends BaseGameView {
 		updateGameState(GameState.GameB_Wait);
 		winlose_animator.cancel();
 		wheel_view.reset();
-		wheel_view.setColor(main_activity.side_index);
+		//wheel_view.setColor(main_activity.side_index);
 		
 		last_wheel_pos=0;
+		
+		
+		
 	}
 	@Override
 	public void End(){
 		super.End();
+		//updateGameState(GameState.None);
+		game_state=GameState.None;
 		
 		img_win.clearAnimation();
 		img_lose.clearAnimation();
+
+		if(img_finish!=null) img_finish.clear();
+		if(wheel_view!=null) wheel_view.clear();
 
 	}
 	@Override
 	public void HandleSensor(float[] sensor_value){
 		
 		if(game_state!=GameState.Rotate) return;
-		
-	
+
+
+		final int axisSwap[][] = {
+				{  1,  -1,  0,  1  },     // ROTATION_0
+				{-1,  -1,  1,  0  },     // ROTATION_90
+				{-1,    1,  0,  1  },     // ROTATION_180
+				{  1,    1,  1,  0  }  }; // ROTATION_270
+
+
 		double delta_strength=sensor_value[0];
-		
+
 		int new_wheel_pos=0;
 		if(delta_strength>BEAT_STRENGTH_THRESHOLD) new_wheel_pos=-1;
 		else if(delta_strength<-BEAT_STRENGTH_THRESHOLD) new_wheel_pos=1;
@@ -414,20 +433,21 @@ public class GameBView extends BaseGameView {
 		
 
     	Bitmap oimg_avatar_bmp=null;
+		int car_resid;
 		switch(index_car){
-			case 0: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_1); break;
-			case 1: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_2); break;
-			case 2: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_3); break;
-			case 3: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_4); break;
-			case 4: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_5); break;
-			case 5: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_6); break;
-			case 6: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_7); break;
-			case 7: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_8); break;
-			case 8: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_9); break;
-			case 9: oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_10); break;
-			default:oimg_avatar_bmp=BitmapFactory.decodeResource(getResources(),R.drawable.gameb_car_9); break;
+			case 0: car_resid=R.drawable.gameb_car_1; break;
+			case 1: car_resid=R.drawable.gameb_car_2; break;
+			case 2: car_resid=R.drawable.gameb_car_3; break;
+			case 3: car_resid=R.drawable.gameb_car_4; break;
+			case 4: car_resid=R.drawable.gameb_car_5; break;
+			case 5: car_resid=R.drawable.gameb_car_6; break;
+			case 6: car_resid=R.drawable.gameb_car_7; break;
+			case 7: car_resid=R.drawable.gameb_car_8; break;
+			case 8: car_resid=R.drawable.gameb_car_9; break;
+			case 9: car_resid=R.drawable.gameb_car_10; break;
+			default:car_resid=R.drawable.gameb_car_9; break;
 		}
-		Bitmap scale_bmp=Bitmap.createScaledBitmap(oimg_avatar_bmp,width,height,true);
+		Bitmap scale_bmp= ImageDecodeHelper.decodeImageToSize(getResources(),car_resid,width,height);
 		
 		return scale_bmp;
 	}
