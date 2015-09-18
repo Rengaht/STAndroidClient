@@ -1,8 +1,0 @@
-<resources>
-
-    <declare-styleable name="MainBackButton">
-        <attr name="backdrawable" format="reference" />
-        <attr name="frontdrawable" format="reference" />
-    </declare-styleable>
-
-</resources>
