@@ -217,7 +217,7 @@ public class GameBView extends BaseGameView {
 	
 	private void showFinishView(){
 
-		
+		//rotate to portrait
 		Message msg=Message.obtain(main_activity.handler,100,102,0,null);
 		main_activity.handler.sendMessage(msg);
 		

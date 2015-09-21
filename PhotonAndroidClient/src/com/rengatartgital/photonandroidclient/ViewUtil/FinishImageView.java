@@ -27,6 +27,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.net.Uri;
@@ -59,17 +60,20 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	private int cur_width,cur_height;
 	private Paint mfill_paint,mstroke_paint,mpaint,mnotice_paint;
 	String date_str;
-	
-	
-	Timer count_timer;
-	
+
 	Handler main_handle;
 	boolean save_finish;
 	
 	int index_game;
-	
 
-	
+	/* for save image */
+	final Handler delay_handler= new Handler();
+	Timer count_timer;
+
+
+
+
+
 	public FinishImageView(Context context){
 		super(context);
 	}
@@ -170,8 +174,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		
 		fadein_animator = ValueAnimator.ofFloat(0,255);
 		fadein_animator.setDuration(50);
-        fadein_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        fadein_animator.addUpdateListener(this);
+		fadein_animator.setInterpolator(new AccelerateDecelerateInterpolator());
+		fadein_animator.addUpdateListener(this);
         fadein_animator.addListener(new AnimatorListener(){
 
 			@Override
@@ -197,19 +201,48 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         fadeout_animator = ValueAnimator.ofFloat(255,0);
 		fadeout_animator.setDuration(200);
 		fadeout_animator.setStartDelay(2000);
-        fadeout_animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        fadeout_animator.addUpdateListener(this);
-        
-        
-        saveImage();
-		this.invalidate();
-	}
+		fadeout_animator.setInterpolator(new AccelerateDecelerateInterpolator());
+		fadeout_animator.addUpdateListener(this);
 
+
+
+		//this.buildDrawingCache();
+		//this.setDrawingCacheEnabled(true);
+
+		this.postInvalidate();
+
+		startDelaySaveTimer();
+		//saveImage();
+
+	}
+	private void startDelaySaveTimer(){
+		Timer timer_delay_save=new Timer();
+		timer_delay_save.schedule(new TimerTask(){
+
+			@Override
+			public void run(){
+				sendSaveImage();
+			}
+		},1000);
+	}
+	private void sendSaveImage(){
+		delay_handler.post(runnable_save);
+	}
+	final Runnable runnable_save=new Runnable() {
+		@Override
+		public void run() {
+			saveImage();
+		}
+	};
 
 	@Override
 	protected void onDraw(Canvas canvas){
 		super.onDraw(canvas);
 		drawOnCanvas(canvas);
+
+//		if(!save_finish) {
+//			saveImage();
+//		}
 		
 	}
 	private void drawOnCanvas(Canvas canvas){
@@ -222,7 +255,7 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 //			notice_bmp=Bitmap.createScaledBitmap(notice_bmp,cur_width,(int)(cur_width*0.0833f),true);
 //		}
 		
-		if(back_bmp!=null) canvas.drawBitmap(back_bmp,new Rect(0,0,back_bmp.getWidth(),back_bmp.getHeight()),new Rect(0,0,cur_width,cur_height),mpaint);
+		if(back_bmp!=null && !back_bmp.isRecycled()) canvas.drawBitmap(back_bmp,new Rect(0,0,back_bmp.getWidth(),back_bmp.getHeight()),new Rect(0,0,cur_width,cur_height),mpaint);
 		if(front_bmp!=null && !front_bmp.isRecycled()){
 			canvas.save();
 			
@@ -253,8 +286,10 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 			canvas.drawText(date_str,cur_width*.98f,cur_height*.57f,mfill_paint);
 		}
 		if(save_finish)
-			canvas.drawBitmap(notice_bmp,0,(int)(cur_height*0.48), mnotice_paint);
-		
+			canvas.drawBitmap(notice_bmp,null,
+                    new RectF(0,(int)(cur_height*0.48),cur_width,(int)(cur_height*0.48+cur_width*0.0833)), mnotice_paint);
+            //canvas.drawBitmap(notice_bmp,0,(int)(cur_height*0.48),mnotice_paint);
+
 	}
 	
 	@Override
@@ -271,12 +306,16 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 	void saveImage(){
 		//Log.i("STLog","Save Image!!!");
 		try {
-//			Bitmap bmp_tosave = Bitmap.createBitmap(cur_width, cur_height, Bitmap.Config.ARGB_8888);
+//            Bitmap bmp_tosave;
+//
+//            bmp_tosave= Bitmap.createBitmap(cur_width, cur_height, Bitmap.Config.RGB_565);
+//
 //			Canvas canvas = new Canvas(bmp_tosave);
 //			drawOnCanvas(canvas);
 
-			this.buildDrawingCache();
+            this.buildDrawingCache();
 			Bitmap bmp_tosave=this.getDrawingCache();
+
 
 
 			ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -286,13 +325,28 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 			saveImage(stream.toByteArray());
 
 			bmp_tosave.recycle();
+            this.destroyDrawingCache();
 
 			stream.close();
-			stream=null;
+			stream = null;
 
-		}catch(Exception e){
-			Log.e("STLog","Save Image Exception! "+e.getMessage());
-		}
+		} catch(OutOfMemoryError e){
+
+            Log.e("STLog", "Save Image Out of Memory " + e.getMessage());
+
+            System.gc();
+            startDelaySaveTimer();
+
+            //this.destroyDrawingCache();
+
+        }catch (Exception e){
+            Log.e("STLog", "Save Image Exception! " + e.getMessage());
+            this.postInvalidate();
+            startDelaySaveTimer();
+
+            //this.destroyDrawingCache();
+
+        }
 	}
 
 	void saveImage(byte[] image_data){
@@ -314,6 +368,9 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
         }
         
         save_finish=true;
+
+        //this.destroyDrawingCache();
+
         beginAnimation();
         
         Message msg=Message.obtain(main_handle,100,100,0,pictureFile.getAbsolutePath());
@@ -362,6 +419,8 @@ public class FinishImageView extends ImageView implements AnimatorUpdateListener
 		if(back_bmp!=null) back_bmp.recycle();
 		if(icon_bmp!=null) icon_bmp.recycle();
 		if(notice_bmp!=null) notice_bmp.recycle();
+
+		if(count_timer!=null) count_timer.cancel();
 
 	}
 

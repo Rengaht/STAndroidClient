@@ -507,14 +507,21 @@ public class GameCView extends BaseGameView{
 				break;
 			case GameC_End:
 				//Bitmap favatar_bmp=createAvatarBitmap(saved_bitmap,iavatar,img_avatar.getWidth(),img_avatar.getHeight());
-			    img_finish.setup(2,avatar_bmp,main_activity.handler);
-				img_finish.setVisibility(View.VISIBLE);
-				//img_finish.reset();
-				
-				button_home.setVisibility(View.VISIBLE);
+			   showFinishView();
 				
 				break;
 		}
+	}
+	private void showFinishView(){
+
+		img_finish.setup(2,avatar_bmp,main_activity.handler);
+
+		img_finish.setVisibility(View.VISIBLE);
+
+		button_home.setVisibility(View.VISIBLE);
+
+		invalidate();
+
 	}
 	private void upadteAdjustPosition(float set_delat_x,float set_delta_y){
 	   adjust_pos_x+=set_delat_x;

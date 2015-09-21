@@ -833,7 +833,7 @@ public class GameAView extends BaseGameView implements AnimatorUpdateListener{
 		iland_view.reset();
 		iland_view.setHandler(main_activity.handler);
 		
-		for(int i=0;i<3;++i) last_sensor_value[i]=0;
+		for(int i=0;i<3;++i) last_sensor_value[i]=-1;
 		
 		lock_step=false;
 		btn_arrow_left.setEnabled(true);

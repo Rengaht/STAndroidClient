@@ -38,6 +38,8 @@ public class ImageDecodeHelper {
             bmp_ouput=Bitmap.createScaledBitmap(bmp_ouput, reqWidth, reqHeight, false);
         }catch(OutOfMemoryError e){
             Log.e("STLog","scale image error: "+e.getMessage());
+        }catch(Exception e){
+            Log.e("STLog","scale image error: "+e.getMessage());
         }
 
         return bmp_ouput;
